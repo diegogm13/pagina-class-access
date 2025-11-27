@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/alumno.css";
 import "../styles/perfilAlumno.css";
 import MenuAlumno from "./menuAlumno";
 

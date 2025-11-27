@@ -4,20 +4,21 @@ import { useNavigate } from "react-router-dom";
 import MenuAdmin from "./menuAdmi";
 
 const Usuarios = () => {
-
   const [usuarios, setUsuarios] = useState([]);
   const [tipoFiltro, setTipoFiltro] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const registrosPorPagina = 10;
   const navigate = useNavigate();
 
   useEffect(() => {
-          const usuario = localStorage.getItem("usuario");
-          if (!usuario) {
-              navigate("/"); // Redirige al login si no hay sesión
-          }
-      }, [navigate]);
+    const usuario = localStorage.getItem("usuario");
+    if (!usuario) {
+      navigate("/");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchUsuarios = async () => {
@@ -70,6 +71,29 @@ const Usuarios = () => {
     return coincideBusqueda && coincideTipo;
   });
 
+  // Calcular índices para la paginación
+  const indiceUltimo = paginaActual * registrosPorPagina;
+  const indicePrimero = indiceUltimo - registrosPorPagina;
+  const usuariosActuales = usuariosFiltrados.slice(indicePrimero, indiceUltimo);
+  const totalPaginas = Math.ceil(usuariosFiltrados.length / registrosPorPagina);
+
+  const paginaSiguiente = () => {
+    if (paginaActual < totalPaginas) {
+      setPaginaActual(paginaActual + 1);
+    }
+  };
+
+  const paginaAnterior = () => {
+    if (paginaActual > 1) {
+      setPaginaActual(paginaActual - 1);
+    }
+  };
+
+  // Reiniciar a página 1 cuando cambian los filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [tipoFiltro, busqueda]);
+
   if (loading) return <div className="loading">Cargando usuarios...</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -79,7 +103,9 @@ const Usuarios = () => {
 
       <main className="contenido-administrador usuarios-container">
         <div className="usuarios-header">
-          <h1>Gestión de Usuarios</h1>
+          <div className="titulo-seccion-container">
+            <h1>Gestión de Usuarios</h1>
+          </div>
           <button 
             onClick={() => navigate("/registro")} 
             className="btn-agregar"
@@ -119,20 +145,26 @@ const Usuarios = () => {
           </form>
         </div>
 
-        <div className="table-responsive">
-          <table className="usuarios-table">
+        {usuariosFiltrados.length > 0 && (
+          <div className="info-registros">
+            <p>Mostrando {indicePrimero + 1} - {Math.min(indiceUltimo, usuariosFiltrados.length)} de {usuariosFiltrados.length} usuarios</p>
+          </div>
+        )}
+
+        <div className="table-responsive" style={{ overflow: 'visible' }}>
+          <table className="usuarios-table" style={{ tableLayout: 'fixed', width: '100%' }}>
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Tipo</th>
-                <th>Estatus</th>
-                <th>Acciones</th>
+                <th style={{ width: '25%' }}>Nombre</th>
+                <th style={{ width: '25%' }}>Correo</th>
+                <th style={{ width: '15%' }}>Tipo</th>
+                <th style={{ width: '15%' }}>Estatus</th>
+                <th style={{ width: '20%' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuariosFiltrados.length > 0 ? (
-                usuariosFiltrados.map(u => (
+              {usuariosActuales.length > 0 ? (
+                usuariosActuales.map(u => (
                   <tr key={u.id_usu}>
                     <td data-label="Nombre">{u.nombre_usu} {u.ap_usu} {u.am_usu}</td>
                     <td data-label="Correo">{u.correo_usu}</td>
@@ -147,13 +179,15 @@ const Usuarios = () => {
                       </span>
                     </td>
                     <td data-label="Acciones">
-                      {u.tipo !== "administrador" && (
+                      {u.tipo !== "administrador" ? (
                         <button 
                           onClick={() => cambiarEstatus(u.id_usu, u.estatus_usu === 1 ? 0 : 1)}
                           className={`btn-estatus ${u.estatus_usu === 1 ? 'desactivar' : 'activar'}`}
                         >
                           {u.estatus_usu === 1 ? "Desactivar" : "Activar"}
                         </button>
+                      ) : (
+                        <span className="sin-acciones">-</span>
                       )}
                     </td>
                   </tr>
@@ -167,6 +201,30 @@ const Usuarios = () => {
               )}
             </tbody>
           </table>
+
+          {usuariosFiltrados.length > registrosPorPagina && (
+            <div className="paginacion">
+              <button 
+                className="btn-paginacion"
+                onClick={paginaAnterior}
+                disabled={paginaActual === 1}
+              >
+                Anterior
+              </button>
+
+              <span className="pagina-actual">
+                Página {paginaActual} de {totalPaginas}
+              </span>
+
+              <button 
+                className="btn-paginacion"
+                onClick={paginaSiguiente}
+                disabled={paginaActual === totalPaginas}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

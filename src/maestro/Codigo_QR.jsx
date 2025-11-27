@@ -12,20 +12,31 @@ const Codigo_QR = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const id_usu = localStorage.getItem("id_usu");
-    if (!id_usu) {
-      navigate("/"); // redirigir si no ha iniciado sesión
+    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!usuarioGuardado) {
+      navigate("/"); // Redirige al login si no hay usuario
       return;
     }
 
+    // Usamos siempre el ID correcto del usuario
+    const id_usu = usuarioGuardado.id_usu;
+
     setCargando(true);
-    axios.get(`https://servidor-class-access.vercel.app/api/profesor/${id_usu}`)
+    axios
+      .get(`https://servidor-class-access.vercel.app/api/profesor/${id_usu}`)
       .then((res) => {
-        setProfesor(res.data);
+        if (res.data) {
+          setProfesor(res.data);
+        } else {
+          console.warn("Profesor no encontrado");
+          setProfesor(null);
+        }
         setCargando(false);
       })
       .catch((err) => {
         console.error("Error al obtener profesor:", err);
+        setProfesor(null);
         setCargando(false);
       });
   }, [navigate]);
@@ -33,22 +44,19 @@ const Codigo_QR = () => {
   return (
     <div className="dashboard-maestro">
       <MenuMaestro />
-      
       <main className="contenido-maestro">
         {cargando ? (
           <div className="cargando-qr">
             <p>Cargando código QR...</p>
           </div>
-        ) : (
+        ) : profesor ? (
           <div className="contenedor-qr">
             <h1 className="titulo-qr">Código QR de Identificación</h1>
-            
             <div className="tarjeta-qr">
               <h2 className="nombre-profesor">
                 {profesor.nombre_usu} {profesor.ap_usu} {profesor.am_usu}
               </h2>
               <p className="numero-empleado">No. Empleado: {profesor.no_empleado}</p>
-              
               <div className="codigo-qr-container">
                 <QRCodeSVG
                   value={String(profesor.no_empleado)}
@@ -57,11 +65,14 @@ const Codigo_QR = () => {
                   includeMargin={true}
                 />
               </div>
-              
               <p className="instrucciones">
-                Acerque su codigo al lector para registrar su entrada 
+                Acerque su código al lector para registrar su entrada
               </p>
             </div>
+          </div>
+        ) : (
+          <div className="error-qr">
+            <p>Profesor no encontrado. Verifica tu información o contacta al administrador.</p>
           </div>
         )}
       </main>

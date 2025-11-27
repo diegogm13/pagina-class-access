@@ -76,22 +76,78 @@ html, body {
 /* Contenido principal */
 .contenido-administrador {
     flex: 1;
-    padding: 30px;
     overflow-y: auto;
     background-color: #f9fafb;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.contenido-administrador h1 {
-    font-size: 2rem;
-    color: #1f2937;
+/* Header Banner - Imagen como header */
+.header-banner {
+    width: 100%;
+    height: 400px;
+    background-image: url('../uteq-administrador.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Overlay sobre la imagen para legibilidad */
+.header-overlay {
+    background: rgba(35, 46, 86, 0.75);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.header-overlay h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-overlay .subtitle {
+    font-size: 1.25rem;
+    color: #e5e7eb;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Contenido debajo del header - IGUAL QUE MAESTRO Y ALUMNO */
+.main-content {
+    padding: 40px 30px;
+    flex: 1;
+}
+
+.content-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.content-card h2 {
+    color: #232e56;
     margin-bottom: 15px;
-    font-weight: 600;
+    font-size: 1.8rem;
 }
 
-.contenido-administrador p {
-    font-size: 1.1rem;
+.content-card p {
     color: #4b5563;
+    font-size: 1.1rem;
     line-height: 1.6;
 }
 
@@ -101,8 +157,16 @@ html, body {
         width: 240px;
     }
     
-    .contenido-administrador {
-        padding: 25px;
+    .header-banner {
+        height: 350px;
+    }
+
+    .header-overlay h1 {
+        font-size: 2.5rem;
+    }
+
+    .main-content {
+        padding: 30px 25px;
     }
 }
 
@@ -131,7 +195,7 @@ html, body {
     }
     
     .sidebar-administrador ul {
-        display: none; /* Ocultamos el menú por defecto en móvil */
+        display: none;
     }
     
     /* Menú hamburguesa para móviles */
@@ -160,13 +224,25 @@ html, body {
         top: 100%;
         left: 0;
         width: 100%;
-        background-color: #d60812;
+        background-color: #232e56;
         padding: 15px;
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     }
     
-    .contenido-administrador {
-        padding: 20px 15px;
+    .header-banner {
+        height: 300px;
+    }
+
+    .header-overlay h1 {
+        font-size: 2rem;
+    }
+
+    .header-overlay .subtitle {
+        font-size: 1.1rem;
+    }
+
+    .main-content {
+        padding: 30px 20px;
     }
 }
 
@@ -175,11 +251,27 @@ html, body {
         font-size: 1.2rem;
     }
     
-    .contenido-administrador h1 {
-        font-size: 1.7rem;
+    .header-banner {
+        height: 250px;
     }
-    
-    .contenido-administrador p {
+
+    .header-overlay h1 {
+        font-size: 1.75rem;
+    }
+
+    .header-overlay .subtitle {
         font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 20px 15px;
+    }
+
+    .content-card {
+        padding: 20px;
+    }
+
+    .content-card h2 {
+        font-size: 1.5rem;
     }
 }

@@ -1,57 +1,234 @@
+/* Contenedor principal del historial */
+.contenido-maestro {
+    padding: 30px 40px;
+}
+
 /* Estilos para el historial del maestro */
 .titulo-seccion {
-    font-size: 2rem;
+    font-size: 2.2rem;
     color: #1f2937;
-    margin-bottom: 1.5rem;
+    margin: 0 0 25px 0;
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #374151;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
+/* Información de registros */
+.info-registros {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+/* Contenedor principal - SIN overflow */
 .contenedor-tabla {
     width: 100%;
-    overflow-x: auto;
-    margin-top: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: visible; /* Cambiado de auto a visible */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
+    background: white;
+    padding: 0;
 }
 
+/* Tabla responsive - SIN overflow */
+.tabla-responsive {
+    width: 100%;
+    overflow: visible; /* Asegura que no haya scroll horizontal */
+}
+
+/* Tabla elegante */
 .tabla-historial {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background-color: #ffffff;
+    table-layout: fixed; /* Asegura que las columnas respeten el ancho */
+}
+
+.tabla-historial thead {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
 }
 
 .tabla-historial th {
-    background-color: #676b69;
     color: white;
-    padding: 12px 15px;
+    padding: 18px 20px;
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+    border-bottom: 3px solid #4b5563;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tabla-historial th:first-child {
+    border-top-left-radius: 16px;
+}
+
+.tabla-historial th:last-child {
+    border-top-right-radius: 16px;
+}
+
+.tabla-historial tbody tr {
+    transition: background-color 0.3s ease; /* Solo transición de color, sin transform */
 }
 
 .tabla-historial td {
-    padding: 12px 15px;
+    padding: 16px 20px;
     border-bottom: 1px solid #e5e7eb;
-    color: #4b5563;
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.tabla-historial tr:nth-child(even) {
-    background-color: #f8fafc;
+.tabla-historial tbody tr:nth-child(even) {
+    background-color: #f9fafb;
 }
 
-.tabla-historial tr:hover {
+.tabla-historial tbody tr:hover {
     background-color: #f0fdf4;
+    /* Removido: transform y box-shadow que causaban el desplazamiento */
 }
 
-.cargando-historial, .sin-registros {
+.tabla-historial tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 16px;
+}
+
+.tabla-historial tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 16px;
+}
+
+.tabla-historial tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estados de carga y sin registros */
+.cargando-historial, 
+.sin-registros {
     text-align: center;
-    padding: 2rem;
+    padding: 60px 20px;
     color: #6b7280;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+.spinner-historial {
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #1f2937;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Paginación elegante */
+.paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 30px 0 20px 0;
+    padding: 20px;
+}
+
+.btn-paginacion {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-paginacion:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+}
+
+.btn-paginacion:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.pagina-actual {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    padding: 12px 24px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    border: 2px solid #e5e7eb;
+}
+
+/* Responsive para tablets */
+@media (max-width: 992px) {
+    .contenido-maestro {
+        padding: 25px 30px;
+    }
+
+    .titulo-seccion {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    .info-registros {
+        margin-bottom: 12px;
+    }
+
+    .tabla-historial th,
+    .tabla-historial td {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+    }
 }
 
 /* Responsive para móviles */
 @media (max-width: 768px) {
+    .contenido-maestro {
+        padding: 20px 15px;
+    }
+
+    .titulo-seccion {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+    }
+
+    .info-registros {
+        margin-bottom: 12px;
+    }
+
     .tabla-historial {
         display: block;
         width: 100%;
@@ -69,39 +246,91 @@
     }
     
     .tabla-historial tr {
-        margin-bottom: 15px;
-        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: white;
     }
     
     .tabla-historial td {
         text-align: right;
-        padding-left: 50%;
+        padding: 14px 20px 14px 50%;
         position: relative;
+        border-bottom: 1px solid #f3f4f6;
+        white-space: normal; /* Permitir wrap en móvil */
+    }
+
+    .tabla-historial td:last-child {
+        border-bottom: none;
     }
     
     .tabla-historial td::before {
         content: attr(data-label);
         position: absolute;
-        left: 15px;
+        left: 20px;
         width: 45%;
         padding-right: 10px;
-        font-weight: 600;
+        font-weight: 700;
         color: #1f2937;
         text-align: left;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+    }
+
+    .paginacion {
+        flex-direction: column;
+        gap: 15px;
+        margin: 25px 0 15px 0;
+    }
+
+    .btn-paginacion {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .pagina-actual {
+        width: 100%;
+        max-width: 300px;
+        text-align: center;
     }
 }
 
 @media (max-width: 576px) {
-    .titulo-seccion {
-        font-size: 1.7rem;
-        margin-bottom: 1.2rem;
+    .contenido-maestro {
+        padding: 15px 10px;
     }
-    
+
+    .titulo-seccion {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .info-registros {
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
     .tabla-historial td {
-        padding: 10px 15px 10px 50%;
+        padding: 12px 15px 12px 50%;
+        font-size: 0.9rem;
     }
     
     .tabla-historial td::before {
-        left: 10px;
+        left: 15px;
+        font-size: 0.75rem;
+    }
+
+    .cargando-historial,
+    .sin-registros {
+        padding: 40px 20px;
+        margin: 20px 0;
+        font-size: 1rem;
+    }
+
+    .paginacion {
+        margin: 20px 0 10px 0;
     }
 }

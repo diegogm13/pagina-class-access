@@ -27,7 +27,11 @@ const MenuMaestro = () => {
 
   const cerrarSesion = () => {
     localStorage.removeItem("usuario");
-    navigate("/");
+    localStorage.removeItem("id_usu");
+    localStorage.removeItem("accessToken");   // si lo guardas
+    localStorage.removeItem("refreshToken");  // si lo guardas
+
+    navigate("/"); // Redirige al login
   };
 
   const irQr = () => {

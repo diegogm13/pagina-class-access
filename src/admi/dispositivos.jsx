@@ -7,16 +7,18 @@ const Dispositivos = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-            const usuario = localStorage.getItem("usuario");
-            if(!usuario) {
-              navigate("/");
-            }
+    const usuario = localStorage.getItem("usuario");
+    if(!usuario) {
+      navigate("/");
+    }
   }, [navigate]);
 
   const [dispositivos, setDispositivos] = useState([]);
   const [nuevoDispositivo, setNuevoDispositivo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const registrosPorPagina = 5;
 
   const obtenerDispositivos = async () => {
     try {
@@ -55,6 +57,7 @@ const Dispositivos = () => {
       if (data.success) {
         setNuevoDispositivo("");
         await obtenerDispositivos();
+        setPaginaActual(1); // Volver a la primera página
       } else {
         alert(data.message || "Error al agregar dispositivo");
       }
@@ -73,7 +76,6 @@ const Dispositivos = () => {
 
     try {
       const response = await fetch(`https://servidor-class-access.vercel.app/api/dispositivos/${id}/estatus`, {
-        
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estatus })
@@ -89,6 +91,24 @@ const Dispositivos = () => {
     } catch (err) {
       console.error("Error al cambiar estatus:", err);
       alert("Error al conectar con el servidor");
+    }
+  };
+
+  // Calcular índices para la paginación
+  const indiceUltimo = paginaActual * registrosPorPagina;
+  const indicePrimero = indiceUltimo - registrosPorPagina;
+  const dispositivosActuales = dispositivos.slice(indicePrimero, indiceUltimo);
+  const totalPaginas = Math.ceil(dispositivos.length / registrosPorPagina);
+
+  const paginaSiguiente = () => {
+    if (paginaActual < totalPaginas) {
+      setPaginaActual(paginaActual + 1);
+    }
+  };
+
+  const paginaAnterior = () => {
+    if (paginaActual > 1) {
+      setPaginaActual(paginaActual - 1);
     }
   };
 
@@ -119,39 +139,71 @@ const Dispositivos = () => {
           </div>
         </form>
 
-        <div className="table-responsive">
+        {dispositivos.length > 0 && (
+          <div className="info-registros">
+            <p>Mostrando {indicePrimero + 1} - {Math.min(indiceUltimo, dispositivos.length)} de {dispositivos.length} dispositivos</p>
+          </div>
+        )}
+
+        <div className="table-responsive" style={{ overflow: 'visible' }}>
           {dispositivos.length > 0 ? (
-            <table className="dispositivos-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Estatus</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dispositivos.map(dis => (
-                  <tr key={dis.id_dispositivo}>
-                    <td data-label="ID">{dis.id_dispositivo}</td>
-                    <td data-label="Nombre">{dis.nombre_dis}</td>
-                    <td data-label="Estatus">
-                      <span className={`estatus ${dis.estatus_dis === 1 ? 'activo' : 'inactivo'}`}>
-                        {dis.estatus_dis === 1 ? "Activo" : "Inactivo"}
-                      </span>
-                    </td>
-                    <td data-label="Acciones">
-                      <button 
-                        onClick={() => cambiarEstatus(dis.id_dispositivo, dis.estatus_dis === 1 ? 0 : 1)}
-                        className={`btn-estatus ${dis.estatus_dis === 1 ? 'desactivar' : 'activar'}`}
-                      >
-                        {dis.estatus_dis === 1 ? "Desactivar" : "Activar"}
-                      </button>
-                    </td>
+            <>
+              <table className="dispositivos-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '15%' }}>ID</th>
+                    <th style={{ width: '40%' }}>Nombre</th>
+                    <th style={{ width: '20%' }}>Estatus</th>
+                    <th style={{ width: '25%' }}>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {dispositivosActuales.map(dis => (
+                    <tr key={dis.id_dispositivo}>
+                      <td data-label="ID">{dis.id_dispositivo}</td>
+                      <td data-label="Nombre">{dis.nombre_dis}</td>
+                      <td data-label="Estatus">
+                        <span className={`estatus ${dis.estatus_dis === 1 ? 'activo' : 'inactivo'}`}>
+                          {dis.estatus_dis === 1 ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+                      <td data-label="Acciones">
+                        <button 
+                          onClick={() => cambiarEstatus(dis.id_dispositivo, dis.estatus_dis === 1 ? 0 : 1)}
+                          className={`btn-estatus ${dis.estatus_dis === 1 ? 'desactivar' : 'activar'}`}
+                        >
+                          {dis.estatus_dis === 1 ? "Desactivar" : "Activar"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {totalPaginas > 1 && (
+                <div className="paginacion">
+                  <button 
+                    className="btn-paginacion"
+                    onClick={paginaAnterior}
+                    disabled={paginaActual === 1}
+                  >
+                    Anterior
+                  </button>
+
+                  <span className="pagina-actual">
+                    Página {paginaActual} de {totalPaginas}
+                  </span>
+
+                  <button 
+                    className="btn-paginacion"
+                    onClick={paginaSiguiente}
+                    disabled={paginaActual === totalPaginas}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="no-results">
               <p>No hay dispositivos registrados</p>

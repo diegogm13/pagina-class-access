@@ -1,104 +1,191 @@
-/* Estilos para el perfil del maestro */
-.titulo-seccion {
-    font-size: 2rem;
-    color: #1f2937;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-weight: 600;
+/* Estilos para el perfil del maestro - Versión Moderna */
+
+.perfil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.contenedor-perfil {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
+.perfil-title-section h1 {
+  font-size: 2.5rem;
+  color: #232e56;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
-.tarjeta-perfil {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    width: 100%;
+.perfil-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 400;
 }
 
-.campo-perfil {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb;
+.perfil-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 40px;
+  margin-bottom: 30px;
+  border: 1px solid #e5e7eb;
 }
 
-.campo-perfil:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
+/* Cards de información mejoradas */
+.perfil-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
 }
 
-.etiqueta-perfil {
-    font-weight: 600;
-    color: #374151;
-    width: 150px;
-    margin-right: 1rem;
+.info-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.valor-perfil {
-    flex: 1;
-    color: #4b5563;
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(35, 46, 86, 0.12);
+  border-color: #232e56;
 }
 
-.valor-perfil.activo {
-    color: #10b981;
-    font-weight: 600;
+.info-icon {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #232e56 0%, #3b4c7a 100%);
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.valor-perfil.inactivo {
-    color: #ef4444;
-    font-weight: 600;
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
+.info-label {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  color: #1f2937;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.status-active {
+  color: #10b981;
+  font-weight: 700;
+  padding: 6px 12px;
+  background-color: #d1fae5;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.status-inactive {
+  color: #ef4444;
+  font-weight: 700;
+  padding: 6px 12px;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+/* Estado de carga mejorado */
 .cargando-perfil {
-    text-align: center;
-    padding: 2rem;
-    color: #6b7280;
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.spinner-perfil {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #232e56;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .titulo-seccion {
-        font-size: 1.7rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .tarjeta-perfil {
-        padding: 1.5rem;
-    }
-    
-    .campo-perfil {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .etiqueta-perfil {
-        width: 100%;
-        margin-right: 0;
-    }
+  .perfil-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .perfil-title-section h1 {
+    font-size: 2rem;
+  }
+
+  .perfil-container {
+    padding: 25px;
+  }
+
+  .perfil-info {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 576px) {
-    .titulo-seccion {
-        font-size: 1.5rem;
-        margin-bottom: 1.2rem;
-    }
-    
-    .tarjeta-perfil {
-        padding: 1.2rem;
-    }
-    
-    .campo-perfil {
-        margin-bottom: 1.2rem;
-        padding-bottom: 0.8rem;
-    }
+  .perfil-title-section h1 {
+    font-size: 1.75rem;
+  }
+
+  .perfil-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .perfil-container {
+    padding: 20px;
+  }
+
+  .info-card {
+    padding: 18px;
+  }
+
+  .info-icon {
+    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+  }
+
+  .info-value {
+    font-size: 1rem;
+  }
 }

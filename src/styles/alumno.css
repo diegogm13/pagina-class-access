@@ -3,7 +3,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-   
 }
 
 html, body {
@@ -23,10 +22,9 @@ html, body {
     overflow: hidden;
 }
 
-/* Sidebar - Versión azul */
 .sidebar-alumno {
     width: 280px;
-    background-color:#232e56; /* Azul */
+    background-color: #232e56;
     color: white;
     padding: 20px 15px;
     display: flex;
@@ -77,60 +75,98 @@ html, body {
 /* Contenido principal */
 .contenido-alumno {
     flex: 1;
-    padding: 30px;
     overflow-y: auto;
     background-color: #f9fafb;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
-.contenido-alumno h1 {
-    font-size: 2rem;
-    color: #1f2937;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-
-.contenido-alumno p {
-    font-size: 1.1rem;
-    color: #4b5563;
-    line-height: 1.6;
-}
-
-/* Header de bienvenida */
-.welcome-header {
-    margin-bottom: 2rem;
-    text-align: center;
-}
-
-.welcome-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #232e56;
-    margin-bottom: 0.5rem;
-}
-
-.welcome-header .subtitle {
-    font-size: 1.125rem;
-    color: #404F62;
-}
-
-/* Contenedor de imagen centrado */
-.content-center {
+/* Header Banner - Imagen como header */
+.header-banner {
+    width: 100%;
+    height: 400px;
+    background-image: url('../escuela.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Estilo de la imagen */
-.dashboard-image {
-    max-width: 500px;
+/* Overlay sobre la imagen para legibilidad */
+.header-overlay {
+    background: rgba(35, 46, 86, 0.75);
     width: 100%;
-    height: auto;
-    display: block;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.header-overlay h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-overlay .subtitle {
+    font-size: 1.25rem;
+    color: #e5e7eb;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Contenido debajo del header */
+.main-content {
+    padding: 40px 30px;
+    flex: 1;
+}
+
+/* Card de contenido ahora ocupa todo el ancho disponible */
+.content-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;        /* ocupa todo el ancho del contenedor */
+    max-width: none;    /* eliminamos restricción */
+    margin: 0;          /* sin centrado */
+}
+
+.content-card h2 {
+    color: #232e56;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.content-card p {
+    color: #4b5563;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Estilos antiguos que ya no se usan pero los dejo por compatibilidad */
+.welcome-header {
+    display: none;
+}
+
+.main-content-card {
+    display: none;
+}
+
+.content-center {
+    display: none;
+}
+
+.dashboard-image {
+    display: none;
 }
 
 /* Responsive */
@@ -139,8 +175,16 @@ html, body {
         width: 240px;
     }
     
-    .contenido-alumno {
-        padding: 25px;
+    .header-banner {
+        height: 350px;
+    }
+
+    .header-overlay h1 {
+        font-size: 2.5rem;
+    }
+
+    .main-content {
+        padding: 30px 25px;
     }
 }
 
@@ -157,6 +201,7 @@ html, body {
         justify-content: space-between;
         position: sticky;
         top: 0;
+        height: auto;
     }
     
     .sidebar-alumno h2 {
@@ -169,10 +214,9 @@ html, body {
     }
     
     .sidebar-alumno ul {
-        display: none; /* Ocultamos el menú por defecto en móvil */
+        display: none;
     }
     
-    /* Menú hamburguesa para móviles */
     .menu-toggle {
         display: flex;
         flex-direction: column;
@@ -190,7 +234,6 @@ html, body {
         border-radius: 3px;
     }
     
-    /* Cuando el menú está abierto */
     .sidebar-alumno.mobile-open ul {
         display: flex;
         flex-direction: column;
@@ -198,21 +241,25 @@ html, body {
         top: 100%;
         left: 0;
         width: 100%;
-        background-color: #2563eb;
+        background-color: #232e56;
         padding: 15px;
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     }
     
-    .contenido-alumno {
-        padding: 20px 15px;
+    .header-banner {
+        height: 300px;
     }
 
-    .welcome-header h1 {
-        font-size: 1.875rem;
+    .header-overlay h1 {
+        font-size: 2rem;
     }
 
-    .dashboard-image {
-        max-width: 350px;
+    .header-overlay .subtitle {
+        font-size: 1.1rem;
+    }
+
+    .main-content {
+        padding: 30px 20px;
     }
 }
 
@@ -221,15 +268,27 @@ html, body {
         font-size: 1.2rem;
     }
     
-    .contenido-alumno h1 {
-        font-size: 1.7rem;
+    .header-banner {
+        height: 250px;
     }
-    
-    .contenido-alumno p {
+
+    .header-overlay h1 {
+        font-size: 1.75rem;
+    }
+
+    .header-overlay .subtitle {
         font-size: 1rem;
     }
 
-    .dashboard-image {
-        max-width: 280px;
+    .main-content {
+        padding: 20px 15px;
+    }
+
+    .content-card {
+        padding: 20px;
+    }
+
+    .content-card h2 {
+        font-size: 1.5rem;
     }
 }

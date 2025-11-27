@@ -6,17 +6,19 @@ import { useNavigate } from "react-router-dom";
 const Asistencias = () => {
   const navigate = useNavigate();
   useEffect(() => {
-            const usuario = localStorage.getItem("usuario");
-            if (!usuario) {
-                navigate("/"); // Redirige al login si no hay sesión
-            }
-        }, [navigate]);
+    const usuario = localStorage.getItem("usuario");
+    if (!usuario) {
+      navigate("/");
+    }
+  }, [navigate]);
         
   const [asistencias, setAsistencias] = useState([]);
   const [fecha, setFecha] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const registrosPorPagina = 10;
 
   const obtenerAsistencias = async () => {
     try {
@@ -28,6 +30,7 @@ const Asistencias = () => {
       const response = await fetch(url);
       const data = await response.json();
       setAsistencias(data);
+      setPaginaActual(1); // Reiniciar a página 1 al filtrar
       setLoading(false);
     } catch (err) {
       console.error("Error al obtener asistencias:", err);
@@ -48,7 +51,26 @@ const Asistencias = () => {
   const limpiarFiltros = () => {
     setFecha("");
     setBusqueda("");
+    setPaginaActual(1);
     obtenerAsistencias();
+  };
+
+  // Calcular índices para la paginación
+  const indiceUltimo = paginaActual * registrosPorPagina;
+  const indicePrimero = indiceUltimo - registrosPorPagina;
+  const registrosActuales = asistencias.slice(indicePrimero, indiceUltimo);
+  const totalPaginas = Math.ceil(asistencias.length / registrosPorPagina);
+
+  const paginaSiguiente = () => {
+    if (paginaActual < totalPaginas) {
+      setPaginaActual(paginaActual + 1);
+    }
+  };
+
+  const paginaAnterior = () => {
+    if (paginaActual > 1) {
+      setPaginaActual(paginaActual - 1);
+    }
   };
 
   if (loading) return <div className="loading">Cargando asistencias...</div>;
@@ -102,48 +124,82 @@ const Asistencias = () => {
           </form>
         </div>
 
-        <div className="table-responsive">
+        {asistencias.length > 0 && (
+          <div className="info-registros">
+            <p>Mostrando {indicePrimero + 1} - {Math.min(indiceUltimo, asistencias.length)} de {asistencias.length} registros</p>
+          </div>
+        )}
+
+        <div className="table-responsive" style={{ overflow: 'visible' }}>
           {asistencias.length > 0 ? (
-            <table className="asistencias-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Correo</th>
-                  <th>Edificio</th>
-                  <th>Aula</th>
-                  <th>Grupo</th>
-                  <th>Entrada</th>
-                  <th>Salida</th>
-                </tr>
-              </thead>
-              <tbody>
-                {asistencias.map((a) => (
-                  <tr key={a.id_registro}>
-                    <td data-label="Nombre">{`${a.nombre_usu} ${a.ap_usu} ${a.am_usu}`}</td>
-                    <td data-label="Correo">{a.correo_usu}</td>
-                    <td data-label="Edificio">{a.edificio}</td>
-                    <td data-label="Aula">{a.nombre_aula}</td>
-                    <td data-label="Grupo">
-                      {a.priv_usu === 1 ? (
-                        <span className="badge grupo">{a.grupo}</span>
-                      ) : (
-                        "N/A"
-                      )}
-                    </td>
-                    <td data-label="Entrada">
-                      <span className="hora entrada">{a.hora_entrada}</span>
-                    </td>
-                    <td data-label="Salida">
-                      {a.hora_salida ? (
-                        <span className="hora salida">{a.hora_salida}</span>
-                      ) : (
-                        <span className="sin-salida">Sin salida</span>
-                      )}
-                    </td>
+            <>
+              <table className="asistencias-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '18%' }}>Nombre</th>
+                    <th style={{ width: '16%' }}>Correo</th>
+                    <th style={{ width: '12%' }}>Edificio</th>
+                    <th style={{ width: '12%' }}>Aula</th>
+                    <th style={{ width: '10%' }}>Grupo</th>
+                    <th style={{ width: '16%' }}>Entrada</th>
+                    <th style={{ width: '16%' }}>Salida</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {registrosActuales.map((a) => (
+                    <tr key={a.id_registro}>
+                      <td data-label="Nombre">{`${a.nombre_usu} ${a.ap_usu} ${a.am_usu}`}</td>
+                      <td data-label="Correo">{a.correo_usu}</td>
+                      <td data-label="Edificio">{a.edificio}</td>
+                      <td data-label="Aula">{a.nombre_aula}</td>
+                      <td data-label="Grupo">
+                        {a.priv_usu === 1 ? (
+                          <span className="badge grupo">{a.grupo}</span>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                      <td data-label="Entrada">
+                        <span className="hora entrada">
+                          {a.hora_entrada ? a.hora_entrada.split('.')[0] : '-'}
+                        </span>
+                      </td>
+                      <td data-label="Salida">
+                        {a.hora_salida ? (
+                          <span className="hora salida">
+                            {a.hora_salida.split('.')[0]}
+                          </span>
+                        ) : (
+                          <span className="sin-salida">Sin salida</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="paginacion">
+                <button 
+                  className="btn-paginacion"
+                  onClick={paginaAnterior}
+                  disabled={paginaActual === 1}
+                >
+                  Anterior
+                </button>
+
+                <span className="pagina-actual">
+                  Página {paginaActual} de {totalPaginas}
+                </span>
+
+                <button 
+                  className="btn-paginacion"
+                  onClick={paginaSiguiente}
+                  disabled={paginaActual === totalPaginas}
+                >
+                  Siguiente
+                </button>
+              </div>
+            </>
           ) : (
             <div className="no-results">
               <p>No se encontraron asistencias con los filtros aplicados</p>

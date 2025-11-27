@@ -90,8 +90,7 @@ const NotificacionesAlumno = () => {
                             <span className="green"></span>
                         </div>
                         <span>Bandeja de Entrada</span>
-                        {/* Puedes poner un icono de cerrar si quieres (por ejemplo, x) */}
-                        <span style={{ cursor: 'pointer' }}>&#x2715;</span> 
+                        <span style={{ cursor: 'pointer' }}></span> 
                     </div>
 
                     {/* Contenido (Título y Lista) */}
@@ -137,13 +136,6 @@ const NotificacionesAlumno = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Botón Flotante para Redactar (Fuera de la ventana, pero dentro del layout) */}
-                {/* Nota: En una aplicación real, este FAB podría ir al final del layout-principal */}
-                <div className="alumno-noti-fab" title="Redactar Nuevo Mensaje">
-                    +
-                </div>
-
             </div>
         </div>
     );

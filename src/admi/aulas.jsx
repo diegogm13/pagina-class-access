@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import MenuAdmin from "./menuAdmi";
-import "../styles/administrador.css";
-import "../styles/usuarios.css";
 import "../styles/aulas.css"
 import { useNavigate } from "react-router-dom";
 
@@ -20,6 +18,8 @@ const Aulas = () => {
   const [edificio, setEdificio] = useState("");
   const [idDispositivo, setIdDispositivo] = useState("");
   const [editandoId, setEditandoId] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const registrosPorPagina = 5;
 
   const obtenerDispositivos = () => {
     fetch("https://servidor-class-access.vercel.app/api/dispositivos")
@@ -89,6 +89,7 @@ const Aulas = () => {
         if (data.success) {
           limpiarFormulario();
           obtenerAulas();
+          setPaginaActual(1); // Volver a página 1
         } else {
           alert("Error al guardar aula");
         }
@@ -102,120 +103,170 @@ const Aulas = () => {
     setEditandoId(aula.id_aula);
   };
 
+  // Calcular índices para la paginación
+  const indiceUltimo = paginaActual * registrosPorPagina;
+  const indicePrimero = indiceUltimo - registrosPorPagina;
+  const aulasActuales = aulas.slice(indicePrimero, indiceUltimo);
+  const totalPaginas = Math.ceil(aulas.length / registrosPorPagina);
+
+  const paginaSiguiente = () => {
+    if (paginaActual < totalPaginas) {
+      setPaginaActual(paginaActual + 1);
+    }
+  };
+
+  const paginaAnterior = () => {
+    if (paginaActual > 1) {
+      setPaginaActual(paginaActual - 1);
+    }
+  };
+
   return (
     <div className="dashboard-administrador">
       <MenuAdmin />
     
-<main className="contenido-administrador aulas-container">
-  <div className="aulas-header">
-    <h1>Gestión de Aulas</h1>
-  </div>
+      <main className="contenido-administrador aulas-container">
+        <div className="aulas-header">
+          <h1>Gestión de Aulas</h1>
+        </div>
 
-  <form className="form-aula" onSubmit={guardarAula}>
-    <div className="form-grid">
-      <div className="form-group">
-        <label htmlFor="nombre-aula">Nombre del aula</label>
-        <input
-          id="nombre-aula"
-          type="text"
-          placeholder="Ej. Aula 101"
-          value={nombreAula}
-          onChange={(e) => setNombreAula(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label htmlFor="edificio">Edificio</label>
-        <input
-          id="edificio"
-          type="text"
-          placeholder="Ej. Edificio A"
-          value={edificio}
-          onChange={(e) => setEdificio(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label htmlFor="dispositivo">Dispositivo</label>
-        <select
-          id="dispositivo"
-          value={idDispositivo}
-          onChange={(e) => setIdDispositivo(e.target.value)}
-        >
-          <option value="">Sin dispositivo</option>
-          {dispositivos.map(dis => (
-            <option key={dis.id_dispositivo} value={dis.id_dispositivo}>
-              {dis.nombre_dis} (ID: {dis.id_dispositivo})
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-    
-    <div className="form-actions">
-      <button type="submit" className="btn-guardar">
-        {editandoId ? "Actualizar Aula" : "Agregar Aula"}
-      </button>
-      {editandoId && (
-        <button 
-          type="button" 
-          className="btn-cancelar"
-          onClick={limpiarFormulario}
-        >
-          Cancelar
-        </button>
-      )}
-    </div>
-  </form>
+        <form className="form-aula" onSubmit={guardarAula}>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="nombre-aula">Nombre del aula</label>
+              <input
+                id="nombre-aula"
+                type="text"
+                placeholder="Ej. Aula 101"
+                value={nombreAula}
+                onChange={(e) => setNombreAula(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="edificio">Edificio</label>
+              <input
+                id="edificio"
+                type="text"
+                placeholder="Ej. Edificio A"
+                value={edificio}
+                onChange={(e) => setEdificio(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="dispositivo">Dispositivo</label>
+              <select
+                id="dispositivo"
+                value={idDispositivo}
+                onChange={(e) => setIdDispositivo(e.target.value)}
+              >
+                <option value="">Sin dispositivo</option>
+                {dispositivos.map(dis => (
+                  <option key={dis.id_dispositivo} value={dis.id_dispositivo}>
+                    {dis.nombre_dis} (ID: {dis.id_dispositivo})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div className="form-actions">
+            <button type="submit" className="btn-guardar">
+              {editandoId ? "Actualizar Aula" : "Agregar Aula"}
+            </button>
+            {editandoId && (
+              <button 
+                type="button" 
+                className="btn-cancelar"
+                onClick={limpiarFormulario}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
 
-  <div className="table-responsive">
-    {aulas.length > 0 ? (
-      <table className="aulas-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Edificio</th>
-            <th>Dispositivo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {aulas.map(a => (
-            <tr key={a.id_aula}>
-              <td data-label="ID">{a.id_aula}</td>
-              <td data-label="Nombre">{a.nombre_aula}</td>
-              <td data-label="Edificio">{a.edificio}</td>
-              <td data-label="Dispositivo">
-                {a.id_dispositivo ? (
-                  <span className="dispositivo-asignado">
-                    {dispositivos.find(d => d.id_dispositivo === a.id_dispositivo)?.nombre_dis}
+        {aulas.length > 0 && (
+          <div className="info-registros">
+            <p>Mostrando {indicePrimero + 1} - {Math.min(indiceUltimo, aulas.length)} de {aulas.length} aulas</p>
+          </div>
+        )}
+
+        <div className="table-responsive" style={{ overflow: 'visible' }}>
+          {aulas.length > 0 ? (
+            <>
+              <table className="aulas-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '10%' }}>ID</th>
+                    <th style={{ width: '25%' }}>Nombre</th>
+                    <th style={{ width: '25%' }}>Edificio</th>
+                    <th style={{ width: '25%' }}>Dispositivo</th>
+                    <th style={{ width: '15%' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aulasActuales.map(a => (
+                    <tr key={a.id_aula}>
+                      <td data-label="ID">{a.id_aula}</td>
+                      <td data-label="Nombre">{a.nombre_aula}</td>
+                      <td data-label="Edificio">{a.edificio}</td>
+                      <td data-label="Dispositivo">
+                        {a.id_dispositivo ? (
+                          <span className="dispositivo-asignado">
+                            {dispositivos.find(d => d.id_dispositivo === a.id_dispositivo)?.nombre_dis}
+                          </span>
+                        ) : (
+                          <span className="sin-dispositivo">Sin dispositivo</span>
+                        )}
+                      </td>
+                      <td data-label="Acciones">
+                        <button 
+                          onClick={() => editarAula(a)}
+                          className="btn-editar"
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {totalPaginas > 1 && (
+                <div className="paginacion">
+                  <button 
+                    className="btn-paginacion"
+                    onClick={paginaAnterior}
+                    disabled={paginaActual === 1}
+                  >
+                    Anterior
+                  </button>
+
+                  <span className="pagina-actual">
+                    Página {paginaActual} de {totalPaginas}
                   </span>
-                ) : (
-                  <span className="sin-dispositivo">Sin dispositivo</span>
-                )}
-              </td>
-              <td data-label="Acciones">
-                <button 
-                  onClick={() => editarAula(a)}
-                  className="btn-editar"
-                >
-                  Editar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    ) : (
-      <div className="no-results">
-        <p>No hay aulas registradas</p>
-      </div>
-    )}
-  </div>
-</main>
+
+                  <button 
+                    className="btn-paginacion"
+                    onClick={paginaSiguiente}
+                    disabled={paginaActual === totalPaginas}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="no-results">
+              <p>No hay aulas registradas</p>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
