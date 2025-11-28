@@ -35,81 +35,86 @@ const Login = () => {
     const irRegistro = () => navigate("/RegistroAlumno");
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!correo.trim() || !contrasena.trim()) {
-            setMensaje("Por favor completa todos los campos");
+    e.preventDefault();
+    
+    if (!correo.trim() || !contrasena.trim()) {
+        setMensaje("Por favor completa todos los campos");
+        return;
+    }
+
+    try {
+        const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: 'include',
+            body: JSON.stringify({ correo, password: contrasena }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (response.status >= 500) {
+                setMensaje("Error del servidor o base de datos no disponible");
+            } else {
+                setMensaje(data.message || "Credenciales incorrectas");
+            }
             return;
         }
 
-        try {
-            const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include', // 🍪 CRÍTICO para cookies
-                body: JSON.stringify({ correo, password: contrasena }),
-            });
+        setMensaje("Login exitoso");
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (response.status >= 500) {
-                    setMensaje("Error del servidor o base de datos no disponible");
-                } else {
-                    setMensaje(data.message || "Credenciales incorrectas");
-                }
-                return;
-            }
-
-            setMensaje("Login exitoso");
-
-            // 💾 GUARDAR EN LOCALSTORAGE como respaldo
-            if (data.data?.user) {
-                localStorage.setItem('userData', JSON.stringify(data.data.user));
-            }
-            if (data.data?.accessToken) {
-                localStorage.setItem('accessToken', data.data.accessToken);
-            }
-            if (data.data?.refreshToken) {
-                localStorage.setItem('refreshToken', data.data.refreshToken);
-            }
-
-            // 🍪 Esperar a que las cookies se establezcan
-            await new Promise(resolve => setTimeout(resolve, 200));
-
-            // 🔄 PRIORIDAD: Cookie > localStorage > Response
-            let userData;
-            const userDataCookie = getCookie("userData");
-            
-            if (userDataCookie) {
-                console.log("✅ Usando cookie");
-                userData = JSON.parse(userDataCookie);
-            } else {
-                console.log("⚠️ Cookie no disponible, usando localStorage");
-                const stored = localStorage.getItem('userData');
-                userData = stored ? JSON.parse(stored) : data.data?.user;
-            }
-
-            if (!userData) {
-                setMensaje("Error al obtener datos de usuario");
-                return;
-            }
-
-            const tipoUsuario = userData.priv_usu;
-
-            // 🎯 Redirigir según el tipo de usuario
-            switch (tipoUsuario) {
-                case 1: navigate("/alumno"); break;
-                case 2: navigate("/maestro"); break;
-                case 3: navigate("/admi"); break;
-                default: setMensaje("Tipo de usuario desconocido");
-            }
-
-        } catch (error) {
-            console.error("Error:", error);
-            setMensaje("No se pudo conectar al servidor.");
+        // 🔍 DEBUG: Ver headers de respuesta
+        console.log("=== RESPONSE HEADERS ===");
+        for (let [key, value] of response.headers.entries()) {
+            console.log(`${key}: ${value}`);
         }
-    };
+        console.log("=== COOKIES ACTUALES ===");
+        console.log(document.cookie);
+
+        // 💾 GUARDAR EN LOCALSTORAGE como respaldo
+        if (data.data?.user) {
+            localStorage.setItem('userData', JSON.stringify(data.data.user));
+        }
+        if (data.data?.accessToken) {
+            localStorage.setItem('accessToken', data.data.accessToken);
+        }
+        if (data.data?.refreshToken) {
+            localStorage.setItem('refreshToken', data.data.refreshToken);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        let userData;
+        const userDataCookie = getCookie("userData");
+        
+        if (userDataCookie) {
+            console.log("✅ Usando cookie");
+            userData = JSON.parse(userDataCookie);
+        } else {
+            console.log("⚠️ Cookie no disponible, usando localStorage");
+            const stored = localStorage.getItem('userData');
+            userData = stored ? JSON.parse(stored) : data.data?.user;
+        }
+
+        if (!userData) {
+            setMensaje("Error al obtener datos de usuario");
+            return;
+        }
+
+        const tipoUsuario = userData.priv_usu;
+
+        switch (tipoUsuario) {
+            case 1: navigate("/alumno"); break;
+            case 2: navigate("/maestro"); break;
+            case 3: navigate("/admi"); break;
+            default: setMensaje("Tipo de usuario desconocido");
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        setMensaje("No se pudo conectar al servidor.");
+    }
+};
 
     const getMensajeClass = () => {
         if (!mensaje) return "";
