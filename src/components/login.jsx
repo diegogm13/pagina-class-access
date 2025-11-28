@@ -16,15 +16,6 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return decodeURIComponent(parts.pop().split(";").shift());
-  }
-  return null;
-};
-
 const Login = () => {
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
@@ -59,30 +50,21 @@ const Login = () => {
 
       setMensaje("Login exitoso");
 
-      // 💾 Guardar userData y tokens en localStorage como respaldo
+      // Guardar userData y tokens en localStorage
       if (data.data?.user) localStorage.setItem("userData", JSON.stringify(data.data.user));
       if (data.data?.accessToken) localStorage.setItem("accessToken", data.data.accessToken);
       if (data.data?.refreshToken) localStorage.setItem("refreshToken", data.data.refreshToken);
 
-      // 🔹 Obtener userData desde cookie o fallback localStorage
-      let userData = null;
-      const userDataCookie = getCookie("userData");
-
-      if (userDataCookie) {
-        console.log("✅ Usando cookie userData");
-        userData = JSON.parse(userDataCookie);
-      } else {
-        console.log("⚠️ Cookie userData no disponible, usando localStorage");
-        const stored = localStorage.getItem("userData");
-        userData = stored ? JSON.parse(stored) : data.data?.user;
-      }
-
-      if (!userData) {
+      // Usar siempre localStorage para userData
+      const stored = localStorage.getItem("userData");
+      if (!stored) {
         setMensaje("Error al obtener datos de usuario");
         return;
       }
 
-      // 🔹 Redirigir según tipo de usuario
+      const userData = JSON.parse(stored);
+
+      // Redirigir según tipo de usuario
       switch (userData.priv_usu) {
         case 1: navigate("/alumno"); break;
         case 2: navigate("/maestro"); break;
