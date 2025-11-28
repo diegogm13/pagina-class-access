@@ -16,6 +16,16 @@ const EyeOffIcon = () => (
     </svg>
 );
 
+// 🍪 Utilidad para obtener una cookie por su nombre
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return decodeURIComponent(parts.pop().split(';').shift());
+    }
+    return null;
+};
+
 const Login = () => {
     const [correo, setCorreo] = useState("");
     const [contrasena, setContrasena] = useState("");
@@ -37,9 +47,16 @@ const Login = () => {
             const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: 'include', // 🍪 Incluir cookies cross-site
+                credentials: 'include', // 🍪 IMPORTANTE: Incluir cookies en cada request
                 body: JSON.stringify({ correo, password: contrasena }),
             });
+
+            if (!response.ok) {
+                if (response.status >= 500) {
+                    setMensaje("Error del servidor o base de datos no disponible");
+                    return;
+                }
+            }
 
             const data = await response.json();
 
@@ -50,8 +67,28 @@ const Login = () => {
 
             setMensaje("Login exitoso");
 
-            // ✅ Usar directamente los datos del usuario que vienen del servidor
-            const userData = data.data.user;
+            // 🍪 Esperar un momento para que las cookies se establezcan
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Leer userData de la cookie
+            const userDataCookie = getCookie("userData");
+            
+            console.log("Todas las cookies:", document.cookie);
+            console.log("userData cookie:", userDataCookie);
+
+            // Si no hay cookie, usar los datos de la respuesta del servidor
+            let userData;
+            if (userDataCookie) {
+                userData = JSON.parse(userDataCookie);
+            } else if (data.data && data.data.user) {
+                // Fallback: usar datos de la respuesta
+                console.warn("Cookie no encontrada, usando respuesta del servidor");
+                userData = data.data.user;
+            } else {
+                setMensaje("Error al obtener datos de usuario");
+                return;
+            }
+
             const tipoUsuario = userData.priv_usu;
 
             // 🎯 Redirigir según el tipo de usuario
