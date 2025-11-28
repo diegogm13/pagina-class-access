@@ -1,7 +1,6 @@
-import React from 'react';
+// ProtectedRoute.jsx
 import { Navigate } from 'react-router-dom';
 
-// 🍪 Utilidad para obtener cookies
 const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -11,56 +10,30 @@ const getCookie = (name) => {
     return null;
 };
 
-// 🔒 Hook personalizado para autenticación
-export const useAuth = () => {
-    const getUserData = () => {
-        const cookie = getCookie("userData");
-        return cookie ? JSON.parse(cookie) : null;
-    };
-
-    const isAuthenticated = () => {
-        const userData = getUserData();
-        return !!userData; // ✅ autentica si existe la cookie userData
-    };
-
-    const getPrivilegio = () => {
-        const userData = getUserData();
-        return userData ? userData.priv_usu : null;
-    };
-
-    return { 
-        getUserData, 
-        isAuthenticated, 
-        getPrivilegio 
-    };
-};
-
-// 🛡️ Componente ProtectedRoute
-const ProtectedRoute = ({ children, requiredPriv = null }) => {
-    const { isAuthenticated, getPrivilegio } = useAuth();
-
-    // Verificar si está autenticado
-    if (!isAuthenticated()) {
-        console.log("❌ No autenticado, redirigiendo a login");
-        return <Navigate to="/" replace />;
-    }
-
-    // Verificar privilegio si es requerido
-    if (requiredPriv !== null) {
-        const userPriv = getPrivilegio();
-        if (userPriv !== requiredPriv) {
-            console.log(`❌ Privilegio incorrecto: tiene ${userPriv}, necesita ${requiredPriv}`);
-            // Redirigir según el privilegio del usuario
-            switch (userPriv) {
-                case 1: return <Navigate to="/alumno" replace />;
-                case 2: return <Navigate to="/maestro" replace />;
-                case 3: return <Navigate to="/admi" replace />;
-                default: return <Navigate to="/" replace />;
-            }
+const ProtectedRoute = ({ children, allowedPrivileges }) => {
+    // Intentar obtener userData de cookie o localStorage
+    let userData = null;
+    
+    const userDataCookie = getCookie("userData");
+    if (userDataCookie) {
+        userData = JSON.parse(userDataCookie);
+    } else {
+        const stored = localStorage.getItem('userData');
+        if (stored) {
+            userData = JSON.parse(stored);
         }
     }
 
-    console.log("✅ Autenticado correctamente");
+    if (!userData) {
+        console.log("❌ No autenticado, redirigiendo a login");
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedPrivileges && !allowedPrivileges.includes(userData.priv_usu)) {
+        console.log("❌ Sin privilegios suficientes");
+        return <Navigate to="/login" replace />;
+    }
+
     return children;
 };
 

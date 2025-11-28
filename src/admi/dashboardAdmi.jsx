@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import MenuAdmin from "./menuAdmi";
 import HeaderImage from "../uteq-administrador.jpeg";
 
-// 🍪 Utilidad para obtener cookies
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -19,30 +18,62 @@ const Admi = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 🍪 Obtener datos del usuario desde la cookie
+    // 🔄 Intentar obtener datos: Cookie > localStorage
+    let userData = null;
+    
     const userDataCookie = getCookie("userData");
-
     if (userDataCookie) {
       try {
-        const usuario = JSON.parse(userDataCookie);
-        setNombre(usuario.nombre_usu);
+        userData = JSON.parse(userDataCookie);
+        console.log("✅ Usando cookie en dashboard");
       } catch (error) {
-        console.error("Error al parsear userData:", error);
-        navigate("/"); // Redirige al login si hay error
+        console.error("Error al parsear cookie:", error);
       }
+    }
+
+    // Si no hay cookie, intentar localStorage
+    if (!userData) {
+      const stored = localStorage.getItem('userData');
+      if (stored) {
+        try {
+          userData = JSON.parse(stored);
+          console.log("⚠️ Usando localStorage en dashboard");
+        } catch (error) {
+          console.error("Error al parsear localStorage:", error);
+        }
+      }
+    }
+
+    if (userData) {
+      setNombre(userData.nombre_usu);
     } else {
-      // Si no hay cookie, redirigir al login
+      // Si no hay datos, redirigir al login
+      console.log("❌ No hay datos de usuario, redirigiendo a login");
       navigate("/");
     }
   }, [navigate]);
 
-  const irUsuarios = () => {
-    navigate("/usuarios");
-  };
+  const cerrarSesion = async () => {
+    try {
+      // 🔥 Llamar al endpoint de logout del backend
+      await fetch("https://classaccess-backend.vercel.app/api/auth/logout", {
+        method: "POST",
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
 
-  const cerrarSesion = () => {
-    // Elimina la cookie del usuario al cerrar sesión
+    // 🧹 Limpiar localStorage
+    localStorage.removeItem('userData');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // 🧹 Limpiar cookies manualmente (por si acaso)
     document.cookie = "userData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
     navigate("/");
   };
 

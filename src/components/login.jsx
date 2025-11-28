@@ -16,7 +16,6 @@ const EyeOffIcon = () => (
     </svg>
 );
 
-// 🍪 Utilidad para obtener una cookie por su nombre
 const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -47,44 +46,51 @@ const Login = () => {
             const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: 'include', // 🍪 IMPORTANTE: Incluir cookies en cada request
+                credentials: 'include', // 🍪 CRÍTICO para cookies
                 body: JSON.stringify({ correo, password: contrasena }),
             });
-
-            if (!response.ok) {
-                if (response.status >= 500) {
-                    setMensaje("Error del servidor o base de datos no disponible");
-                    return;
-                }
-            }
 
             const data = await response.json();
 
             if (!response.ok) {
-                setMensaje(data.message || "Credenciales incorrectas");
+                if (response.status >= 500) {
+                    setMensaje("Error del servidor o base de datos no disponible");
+                } else {
+                    setMensaje(data.message || "Credenciales incorrectas");
+                }
                 return;
             }
 
             setMensaje("Login exitoso");
 
-            // 🍪 Esperar un momento para que las cookies se establezcan
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // 💾 GUARDAR EN LOCALSTORAGE como respaldo
+            if (data.data?.user) {
+                localStorage.setItem('userData', JSON.stringify(data.data.user));
+            }
+            if (data.data?.accessToken) {
+                localStorage.setItem('accessToken', data.data.accessToken);
+            }
+            if (data.data?.refreshToken) {
+                localStorage.setItem('refreshToken', data.data.refreshToken);
+            }
 
-            // Leer userData de la cookie
+            // 🍪 Esperar a que las cookies se establezcan
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            // 🔄 PRIORIDAD: Cookie > localStorage > Response
+            let userData;
             const userDataCookie = getCookie("userData");
             
-            console.log("Todas las cookies:", document.cookie);
-            console.log("userData cookie:", userDataCookie);
-
-            // Si no hay cookie, usar los datos de la respuesta del servidor
-            let userData;
             if (userDataCookie) {
+                console.log("✅ Usando cookie");
                 userData = JSON.parse(userDataCookie);
-            } else if (data.data && data.data.user) {
-                // Fallback: usar datos de la respuesta
-                console.warn("Cookie no encontrada, usando respuesta del servidor");
-                userData = data.data.user;
             } else {
+                console.log("⚠️ Cookie no disponible, usando localStorage");
+                const stored = localStorage.getItem('userData');
+                userData = stored ? JSON.parse(stored) : data.data?.user;
+            }
+
+            if (!userData) {
                 setMensaje("Error al obtener datos de usuario");
                 return;
             }
@@ -101,7 +107,7 @@ const Login = () => {
 
         } catch (error) {
             console.error("Error:", error);
-            setMensaje("No se pudo conectar al servidor. Verifica tu conexión o la base de datos.");
+            setMensaje("No se pudo conectar al servidor.");
         }
     };
 
