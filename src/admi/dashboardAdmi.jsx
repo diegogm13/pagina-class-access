@@ -4,46 +4,52 @@ import { useNavigate } from "react-router-dom";
 import MenuAdmin from "./menuAdmi";
 import HeaderImage from "../uteq-administrador.jpeg";
 
-// 🍪 Utilidad para obtener cookies
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return decodeURIComponent(parts.pop().split(';').shift());
-  }
-  return null;
-};
-
 const Admi = () => {
   const [nombre, setNombre] = useState("");
   const navigate = useNavigate();
 
+  // ✅ Obtener datos del usuario desde el backend
   useEffect(() => {
-    // 🍪 Obtener datos del usuario desde la cookie
-    const userDataCookie = getCookie("userData");
-
-    if (userDataCookie) {
+    const fetchUserData = async () => {
       try {
-        const usuario = JSON.parse(userDataCookie);
-        setNombre(usuario.nombre_usu);
+        const res = await fetch("https://classaccess-backend.vercel.app/api/auth/me", {
+          credentials: "include" // 🍪 enviar cookies HttpOnly
+        });
+
+        if (!res.ok) {
+          // No autenticado, redirigir al login
+          navigate("/");
+          return;
+        }
+
+        const data = await res.json();
+        setNombre(data.user.nombre_usu);
       } catch (error) {
-        console.error("Error al parsear userData:", error);
-        navigate("/"); // Redirige al login si hay error
+        console.error("Error al obtener usuario:", error);
+        navigate("/"); // Redirigir al login en caso de error
       }
-    } else {
-      // Si no hay cookie, redirigir al login
-      navigate("/");
-    }
+    };
+
+    fetchUserData();
   }, [navigate]);
 
+  // Ir a la página de usuarios
   const irUsuarios = () => {
     navigate("/usuarios");
   };
 
-  const cerrarSesion = () => {
-    // Elimina la cookie del usuario al cerrar sesión
-    document.cookie = "userData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/");
+  // ✅ Logout seguro
+  const cerrarSesion = async () => {
+    try {
+      await fetch("https://classaccess-backend.vercel.app/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      navigate("/"); // Redirigir al login
+    }
   };
 
   return (
@@ -65,6 +71,8 @@ const Admi = () => {
           <div className="content-card">
             <h2>Panel de Administración</h2>
             <p>Gestiona usuarios, asistencias y toda la información del sistema.</p>
+            <button onClick={irUsuarios} className="btn-ir-usuarios">Ir a Usuarios</button>
+            <button onClick={cerrarSesion} className="btn-cerrar-sesion">Cerrar Sesión</button>
           </div>
         </div>
       </main>
