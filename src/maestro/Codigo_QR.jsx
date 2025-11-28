@@ -42,7 +42,7 @@ const Codigo_QR = () => {
 
     setCargando(true);
     axios
-      .get(`https://classaccess-backend.vercel.app/api/teachers/${id_usu}`, { withCredentials: true })
+      .get(`http://localhost:3001/api/teachers/${id_usu}`, { withCredentials: true })
       .then((res) => {
         if (res.data && res.data.success && res.data.data) {
           setProfesor(res.data.data); // ✅ usamos data

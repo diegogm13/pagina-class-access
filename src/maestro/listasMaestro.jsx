@@ -70,7 +70,7 @@ const ListasMaestro = () => {
 
       // 📡 Usar la nueva API con autenticación por cookies
       const response = await axios.get(
-        `https://classaccess-backend.vercel.app/api/teachers/${idMaestro}/lists`,
+        `http://localhost:3001/api/teachers/${idMaestro}/lists`,
         {
           params: { fecha }, // Axios automáticamente convierte esto a query string
           withCredentials: true, // 🔑 Importante: envía las cookies

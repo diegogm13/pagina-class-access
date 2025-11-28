@@ -40,7 +40,7 @@ const Codigo = () => {
 
     const fetchAlumno = async () => {
       try {
-        const response = await axios.get(`https://classaccess-backend.vercel.app/api/students/${usuario.id_usu}`, {
+        const response = await axios.get(`http://localhost:3001/api/students/${usuario.id_usu}`, {
           withCredentials: true, // 🍪 enviar cookies
         });
 

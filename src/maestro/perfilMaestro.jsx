@@ -50,7 +50,7 @@ const PerfilMaestro = () => {
 
     // 📡 Obtener datos del maestro desde el backend
     axios
-      .get(`https://classaccess-backend.vercel.app/api/teachers/${id_usu}/profile`, {
+      .get(`http://localhost:3001/api/teachers/${id_usu}/profile`, {
         withCredentials: true, // 🔑 Importante: envía las cookies con la petición
         headers: {
           'Content-Type': 'application/json'

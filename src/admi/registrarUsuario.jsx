@@ -122,7 +122,7 @@ const RegistrarUsuario = () => {
       console.log("📤 Payload preparado:", payload);
 
       const response = await axios.post(
-        "https://classaccess-backend.vercel.app/api/users/register",
+        "http://localhost:3001/api/users/register",
         payload,
         {
           withCredentials: true, // 🔑 Importante: envía las cookies

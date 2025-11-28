@@ -48,13 +48,12 @@ const NotificacionesMaestro = () => {
     const fetchNotificaciones = async () => {
       setCargando(true);
       try {
-        // Mismo payload que alumnos
-        const payload = { studentId: idUsuario }; 
-        const res = await fetch("https://classaccess-backend.vercel.app/api/notifications/student", {
-          method: "POST",
+        // ✅ CAMBIO: Ahora es GET con el ID en la URL
+        const res = await fetch(`http://localhost:3001/api/notifications/student/${idUsuario}`, {
+          method: "GET",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
+          credentials: "include"
+          // ❌ Ya NO se envía body en GET
         });
 
         const data = await res.json();
