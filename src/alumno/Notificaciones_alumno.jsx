@@ -48,7 +48,7 @@ const NotificacionesAlumno = () => {
             setCargando(true);
             try {
                 // ✅ CAMBIO: Ahora es GET con el ID en la URL
-                const res = await fetch(`http://localhost:3001/api/notifications/student/${idUsuario}`, {
+                const res = await fetch(`https://classaccess-backend.vercel.app/api/notifications/student/${idUsuario}`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include"

@@ -41,7 +41,7 @@ const PerfilAlumno = () => {
   const fetchAlumnoData = async (id) => {
     try {
       // 🍪 CRÍTICO: Agregar credentials: 'include' para enviar cookies
-      const response = await fetch(`http://localhost:3001/api/students/${id}`, {
+      const response = await fetch(`https://classaccess-backend.vercel.app/api/students/${id}`, {
         method: 'GET',
         credentials: 'include', // 🍪 Enviar cookies con la petición
         headers: {
@@ -98,7 +98,7 @@ const PerfilAlumno = () => {
 
     try {
       // 🍪 CRÍTICO: Agregar credentials: 'include'
-      const response = await fetch(`http://localhost:3001/api/students/${usuario.id_usu}`, {
+      const response = await fetch(`https://classaccess-backend.vercel.app/api/students/${usuario.id_usu}`, {
         method: "PUT",
         credentials: 'include', // 🍪 Enviar cookies con la petición
         headers: {

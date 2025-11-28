@@ -58,7 +58,7 @@ const Usuarios = () => {
       try {
         console.log("🔍 Obteniendo usuarios...");
         
-        const response = await axios.get("http://localhost:3001/api/users", {
+        const response = await axios.get("https://classaccess-backend.vercel.app/api/users", {
           withCredentials: true, // 🔑 Importante: envía las cookies
           headers: {
             'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ const Usuarios = () => {
       console.log(`🔄 Cambiando estatus del usuario ${id} a ${nuevoEstatus}`);
 
       const response = await axios.put(
-        `http://localhost:3001/api/users/${id}/status`,
+        `https://classaccess-backend.vercel.app/api/users/${id}/status`,
         { estatus: nuevoEstatus },
         {
           withCredentials: true,
