@@ -103,30 +103,32 @@ const Dispositivos = () => {
   };
 
   // CAMBIAR ESTATUS
-  const cambiarEstatus = async (id, estatusActual) => {
-    const nuevoEstatus = !estatusActual;
+// CAMBIAR ESTATUS
+const cambiarEstatus = async (id, estatusActual) => {
+  const nuevoEstatus = !estatusActual;
 
-    if (!window.confirm(`¿Deseas ${nuevoEstatus ? "activar" : "desactivar"} este dispositivo?`)) return;
+  if (!window.confirm(`¿Deseas ${nuevoEstatus ? "activar" : "desactivar"} este dispositivo?`)) return;
 
-    try {
-      const response = await fetch(`https://classaccess-backend.vercel.app/api/devices/${id}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ estatus_dis: nuevoEstatus }),
-      });
+  try {
+    const response = await fetch(`https://classaccess-backend.vercel.app/api/devices/${id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ estatus: nuevoEstatus }), // <-- Cambio aquí
+    });
 
-      if (response.ok) {
-        obtenerDispositivos();
-      } else {
-        const error = await response.json();
-        alert(error.message || "Error al cambiar el estatus");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error de conexión");
+    if (response.ok) {
+      obtenerDispositivos(); // refrescar lista
+    } else {
+      const error = await response.json();
+      alert(error.message || "Error al cambiar el estatus");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Error de conexión");
+  }
+};
+
 
   // Paginación
   const totalPaginas = Math.ceil(dispositivos.length / registrosPorPagina);
