@@ -2,12 +2,36 @@ import React, { useEffect, useState } from "react";
 import MenuMaestro from "./menuMaestro";
 import "../styles/maestro.css";
 
+// 🍪 Función para leer cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return null;
+};
+
 const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
 const HorarioMaestro = () => {
   const [horario, setHorario] = useState([]);
 
   useEffect(() => {
+    const userDataCookie = getCookie("userData");
+    if (!userDataCookie) {
+      window.location.href = "/"; // Redirige al login si no hay cookie
+      return;
+    }
+
+    try {
+      JSON.parse(userDataCookie); // solo para validar que sea JSON válido
+    } catch {
+      window.location.href = "/";
+      return;
+    }
+
+    // --- Inicializar horario desde localStorage ---
     const saved = localStorage.getItem("horario");
     try {
       const parsed = JSON.parse(saved);
@@ -55,7 +79,7 @@ const HorarioMaestro = () => {
       <div className="contenido-maestro">
         <div className="p-4">
           <h2 className="text-xl font-bold mb-4">Horario de clases</h2>
-            <table className="w-full table-fixed bg-white border border-gray-300 shadow rounded overflow-x-auto">
+          <table className="w-full table-fixed bg-white border border-gray-300 shadow rounded overflow-x-auto">
             <thead>
               <tr className="bg-gray-100 text-left">
                 <th className="py-2 px-4 border-b">Hora</th>

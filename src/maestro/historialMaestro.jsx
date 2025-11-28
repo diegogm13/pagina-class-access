@@ -5,50 +5,72 @@ import "../styles/historialMaestro.css";
 import MenuMaestro from "./menuMaestro";
 import { useNavigate } from "react-router-dom";
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return null;
+};
+
 const HistorialMaestros = () => {
   const navigate = useNavigate();
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 10;
-  const id_usu = localStorage.getItem("id_usu");
 
   useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    if (!usuario) navigate("/");
-  }, [navigate]);
+    const userDataCookie = getCookie("userData");
 
-  useEffect(() => {
-    if (!id_usu) return;
+    if (!userDataCookie) {
+      navigate("/"); // Redirige al login si no hay cookie
+      return;
+    }
+
+    let usuario;
+    try {
+      usuario = JSON.parse(userDataCookie);
+    } catch (error) {
+      console.error("Error al parsear userData:", error);
+      navigate("/"); // Redirige si la cookie está corrupta
+      return;
+    }
+
+    const id_usu = usuario.id_usu;
 
     setCargando(true);
     axios
-      .get(`https://servidor-class-access.vercel.app/api/alumno/historial/${id_usu}`)
+      .get(`https://classaccess-backend.vercel.app/api/students/${id_usu}/history`, {
+        withCredentials: true,
+      })
       .then((res) => {
-        setHistorial(res.data || []);
+        if (res.data && res.data.success && Array.isArray(res.data.data)) {
+          setHistorial(res.data.data);
+        } else {
+          setHistorial([]);
+        }
         setCargando(false);
       })
       .catch((err) => {
         console.error("Error al obtener historial:", err);
+        setHistorial([]);
         setCargando(false);
       });
-  }, [id_usu]);
+  }, [navigate]);
 
-  // --- FORMATEAR FECHA SIN RESTAR UN DÍA (EVITA new Date) ---
+  // --- FORMATEAR FECHA SIN RESTAR UN DÍA ---
   const formatFecha = (fecha) => {
     if (!fecha) return "-";
-
     const str = String(fecha).trim();
-
-    // Detecta tanto "2025-11-27" como "2025-11-27T00:00:00.000Z"
     const match = str.match(/^(\d{4}-\d{2}-\d{2})/);
-
     if (match) {
       const [yyyy, mm, dd] = match[1].split("-");
       return `${dd}/${mm}/${yyyy}`;
     }
-
-    return str; // fallback
+    return str;
   };
 
   // --- PAGINACIÓN ---
@@ -105,25 +127,11 @@ const HistorialMaestros = () => {
                   <tbody>
                     {registrosActuales.map((registro, index) => (
                       <tr key={index}>
-                        <td data-label="Fecha">
-                          {formatFecha(registro.fecha)}
-                        </td>
-
-                        <td data-label="Entrada">
-                          {registro.hora_entrada ? registro.hora_entrada.split(".")[0] : "-"}
-                        </td>
-
-                        <td data-label="Salida">
-                          {registro.hora_salida ? registro.hora_salida.split(".")[0] : "-"}
-                        </td>
-
-                        <td data-label="Aula">
-                          {registro.nombre_aula || "Sin aula"}
-                        </td>
-
-                        <td data-label="Edificio">
-                          {registro.edificio || "-"}
-                        </td>
+                        <td data-label="Fecha">{formatFecha(registro.fecha)}</td>
+                        <td data-label="Entrada">{registro.hora_entrada ? registro.hora_entrada.split(".")[0] : "-"}</td>
+                        <td data-label="Salida">{registro.hora_salida ? registro.hora_salida.split(".")[0] : "-"}</td>
+                        <td data-label="Aula">{registro.nombre_aula || "Sin aula"}</td>
+                        <td data-label="Edificio">{registro.edificio || "-"}</td>
                       </tr>
                     ))}
                   </tbody>

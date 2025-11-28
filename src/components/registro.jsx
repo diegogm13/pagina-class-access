@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "../styles/registroAlumno.css";
-import { useNavigate } from "react-router-dom"
-
+import { useNavigate } from "react-router-dom";
 
 const RegistroAlumno = () => {
   const [formData, setFormData] = useState({
@@ -14,17 +13,21 @@ const RegistroAlumno = () => {
     matricula: "",
     cod_rfid: "",
     grupo: "",
-    priv: "1",
   });
 
-
   const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const irLogin = () =>
+  
+  const irLogin = (e) => {
+    e.preventDefault();
     navigate("/");
+  };
 
   const handleChange = (e) => {
     let { name, value } = e.target;
+    
+    // Convertir grupo a mayúsculas y eliminar caracteres no válidos
     if (name === "grupo") {
       value = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     }
@@ -43,6 +46,7 @@ const RegistroAlumno = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("");
+    setLoading(true);
 
     const {
       nombre,
@@ -54,56 +58,75 @@ const RegistroAlumno = () => {
       matricula,
       cod_rfid,
       grupo,
-      priv,
     } = formData;
 
+    // Validaciones
     if (password !== repetirPassword) {
       setMensaje("Las contraseñas no coinciden.");
+      setLoading(false);
       return;
     }
 
     if (!validarPassword(password)) {
-      setMensaje("La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un caracter especial.");
+      setMensaje(
+        "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un caracter especial."
+      );
+      setLoading(false);
       return;
     }
 
-
+    // 🔧 CRÍTICO: priv debe ser un número, no string
     const payload = {
       nombre,
       ap,
       am,
       correo,
       password,
-      priv,
+      priv: 1, // 🔧 Número, no string "1"
       matricula,
-      cod_rfid: cod_rfid || null,
+      cod_rfid: cod_rfid.trim() || null, // null si está vacío
       grupo,
     };
 
+    console.log("📤 Enviando payload:", payload); // Debug
+
     try {
-      const res = await fetch("https://servidor-class-access.vercel.app/registrarUsuario", {
+      const res = await fetch("https://classaccess-backend.vercel.app/api/users/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: 'include', // 🍪 Por si necesitas cookies en el futuro
+        headers: { 
+          "Content-Type": "application/json" 
+        },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+      console.log("📥 Respuesta del servidor:", data); // Debug
 
       if (data.success) {
-        if (!cod_rfid) {
-          alert(
-            "Registro exitoso. Recuerda que para añadir el acceso con credencial, puedes acercarte a un módulo y agregarlo más tarde desde tu perfil."
+        // Mensaje de éxito
+        if (!cod_rfid.trim()) {
+          setMensaje(
+            "✅ Registro exitoso. Recuerda que puedes agregar tu credencial RFID más tarde desde tu perfil."
           );
         } else {
-          alert("Registro exitoso.");
+          setMensaje("✅ Registro exitoso. Ya puedes iniciar sesión.");
         }
-        navigate("/");
+
+        // Redirigir al login después de 2 segundos
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+
       } else {
-        setMensaje("Error al registrar usuario.");
+        setMensaje(`❌ Error: ${data.message || "No se pudo registrar el usuario"}`);
       }
+
     } catch (error) {
-      console.error("Error:", error);
-      setMensaje("Error de conexión al servidor.");
+      console.error("Error en registro:", error);
+      setMensaje("❌ Error de conexión al servidor. Verifica que el backend esté corriendo.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,38 +135,161 @@ const RegistroAlumno = () => {
       <div className="left-panel-registro">
         <img src="/logo.png" alt="Logo" className="logo-image-small" />
       </div>
+      
       <div className="right-panel-registro">
         <div className="form-container-registro">
           <h2>Registro de Alumno</h2>
+          
           <form onSubmit={handleSubmit}>
-            {[
-              { label: "Nombre", name: "nombre" },
-              { label: "Apellido Paterno", name: "ap" },
-              { label: "Apellido Materno", name: "am" },
-              { label: "Correo", name: "correo", type: "email" },
-              { label: "Contraseña", name: "password", type: "password" },
-              { label: "Repetir Contraseña", name: "repetirPassword", type: "password" },
-              { label: "Matrícula", name: "matricula" },
-              { label: "Grupo", name: "grupo", placeholder: "Ej. G1" },
-              { label: "Código RFID (opcional)", name: "cod_rfid" },
-            ].map(({ label, name, type = "text", placeholder }) => (
-              <div className="form-group" key={name}>
-                <label>{label}</label>
-                <input
-                  type={type}
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  placeholder={placeholder}
-                  required={name !== "cod_rfid"}
-                />
-              </div>
-            ))}
+            <div className="form-group">
+              <label>Nombre</label>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Ej. Juan"
+                required
+                disabled={loading}
+              />
+            </div>
 
-            <button type="submit">Registrar</button>
-            <button onClick={irLogin} type="submit">Regresar</button>
+            <div className="form-group">
+              <label>Apellido Paterno</label>
+              <input
+                type="text"
+                name="ap"
+                value={formData.ap}
+                onChange={handleChange}
+                placeholder="Ej. Pérez"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Apellido Materno</label>
+              <input
+                type="text"
+                name="am"
+                value={formData.am}
+                onChange={handleChange}
+                placeholder="Ej. García"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Correo Institucional</label>
+              <input
+                type="email"
+                name="correo"
+                value={formData.correo}
+                onChange={handleChange}
+                placeholder="ejemplo@uteq.edu.mx"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Mínimo 8 caracteres"
+                required
+                disabled={loading}
+              />
+              <small className="helper-text">
+                Debe contener: mayúscula, número y caracter especial
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>Repetir Contraseña</label>
+              <input
+                type="password"
+                name="repetirPassword"
+                value={formData.repetirPassword}
+                onChange={handleChange}
+                placeholder="Confirma tu contraseña"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Matrícula</label>
+              <input
+                type="text"
+                name="matricula"
+                value={formData.matricula}
+                onChange={handleChange}
+                placeholder="Ej. A12345678"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Grupo</label>
+              <input
+                type="text"
+                name="grupo"
+                value={formData.grupo}
+                onChange={handleChange}
+                placeholder="Ej. 3A"
+                maxLength={5}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Código RFID (Opcional)</label>
+              <input
+                type="text"
+                name="cod_rfid"
+                value={formData.cod_rfid}
+                onChange={handleChange}
+                placeholder="Escanea tu credencial"
+                disabled={loading}
+              />
+              <small className="helper-text">
+                Puedes agregarlo después desde tu perfil
+              </small>
+            </div>
+
+            <div className="button-group">
+              <button 
+                type="submit" 
+                className="btn-registrar"
+                disabled={loading}
+              >
+                {loading ? "Registrando..." : "Registrar"}
+              </button>
+              
+            <button
+                type="button"
+                onClick={irLogin}
+                className="btn-regresar"
+                disabled={loading}
+                style={{ color: "white" }}
+              >
+                Regresar
+            </button>
+            </div>
           </form>
-          {mensaje && <p className="mensaje">{mensaje}</p>}
+
+          {mensaje && (
+            <div className={`mensaje ${mensaje.includes("✅") ? "success" : "error"}`}>
+              {mensaje}
+            </div>
+          )}
         </div>
       </div>
     </div>

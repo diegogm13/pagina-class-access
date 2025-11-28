@@ -8,16 +8,22 @@ import { useNavigate } from "react-router-dom";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return null;
+};
+
 const Reportes = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    if (!usuario) {
-      navigate("/");
-    }
-  }, [navigate]);
-  
+  const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
   const [asistencias, setAsistencias] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [filtroFecha, setFiltroFecha] = useState("");
@@ -28,10 +34,33 @@ const Reportes = () => {
   const [clasesEfectivas, setClasesEfectivas] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ Validación de cookie en lugar de localStorage
   useEffect(() => {
-    obtenerGrupos();
-    obtenerAsistencias();
-  }, [filtroFecha, filtroGrupo]);
+    const userDataCookie = getCookie("userData");
+
+    if (!userDataCookie) {
+      navigate("/");
+      return;
+    }
+
+    try {
+      const usuarioCookie = JSON.parse(userDataCookie);
+      setUsuario(usuarioCookie);
+    } catch (error) {
+      console.error("Error al parsear cookie:", error);
+      navigate("/");
+      return;
+    } finally {
+      setCargando(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!cargando) {
+      obtenerGrupos();
+      obtenerAsistencias();
+    }
+  }, [filtroFecha, filtroGrupo, cargando]);
 
   const obtenerAsistencias = async () => {
     try {
@@ -40,7 +69,9 @@ const Reportes = () => {
       if (filtroFecha) params.append("fecha", filtroFecha);
       if (filtroGrupo) params.append("grupo", filtroGrupo);
 
-      const response = await fetch(`https://servidor-class-access.vercel.app/api/asistencias/reportes?${params.toString()}`);
+      const response = await fetch(`https://servidor-class-access.vercel.app/api/asistencias/reportes?${params.toString()}`, {
+        credentials: "include" // 🍪 Incluir cookies en la solicitud
+      });
       const data = await response.json();
       setAsistencias(data);
     } catch (error) {
@@ -52,7 +83,9 @@ const Reportes = () => {
 
   const obtenerGrupos = async () => {
     try {
-      const response = await fetch("https://servidor-class-access.vercel.app/api/grupos");
+      const response = await fetch("https://servidor-class-access.vercel.app/api/grupos", {
+        credentials: "include" // 🍪 Incluir cookies en la solicitud
+      });
       const data = await response.json();
       setGrupos(data);
     } catch (error) {
@@ -245,6 +278,8 @@ const Reportes = () => {
   };
 
   const porcentaje = totalClases > 0 ? Math.round((clasesEfectivas / totalClases) * 100) : 0;
+
+  if (cargando) return <div className="loading">Cargando información...</div>;
 
   return (
     <div className="dashboard-administrador">

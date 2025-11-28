@@ -3,15 +3,37 @@ import MenuAdmin from "./menuAdmi";
 import "../styles/asistencia.css";
 import { useNavigate } from "react-router-dom";
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return null;
+};
+
 const Asistencias = () => {
   const navigate = useNavigate();
+  const [usuario, setUsuario] = useState(null);
+
   useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    if (!usuario) {
+    const userDataCookie = getCookie("userData");
+
+    if (userDataCookie) {
+      try {
+        const usuario = JSON.parse(userDataCookie);
+        setUsuario(usuario);
+      } catch (error) {
+        console.error("Error al parsear userData:", error);
+        navigate("/"); // Redirige al login si hay error
+      }
+    } else {
+      // Si no hay cookie, redirigir al login
       navigate("/");
     }
   }, [navigate]);
-        
+
   const [asistencias, setAsistencias] = useState([]);
   const [fecha, setFecha] = useState("");
   const [busqueda, setBusqueda] = useState("");
@@ -73,6 +95,7 @@ const Asistencias = () => {
     }
   };
 
+  if (!usuario) return <div className="loading">Validando sesión...</div>;
   if (loading) return <div className="loading">Cargando asistencias...</div>;
   if (error) return <div className="error">{error}</div>;
 

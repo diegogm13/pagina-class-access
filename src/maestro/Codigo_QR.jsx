@@ -6,28 +6,46 @@ import "../styles/maestro.css";
 import "../styles/codigoQR.css";
 import MenuMaestro from "./menuMaestro";
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return null;
+};
+
 const Codigo_QR = () => {
   const [profesor, setProfesor] = useState(null);
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+    const userDataCookie = getCookie("userData");
 
-    if (!usuarioGuardado) {
-      navigate("/"); // Redirige al login si no hay usuario
+    if (!userDataCookie) {
+      navigate("/"); // Redirige al login si no hay cookie
       return;
     }
 
-    // Usamos siempre el ID correcto del usuario
-    const id_usu = usuarioGuardado.id_usu;
+    let usuario;
+    try {
+      usuario = JSON.parse(userDataCookie);
+    } catch (error) {
+      console.error("Error al parsear userData:", error);
+      navigate("/"); // Redirige si la cookie está corrupta
+      return;
+    }
+
+    const id_usu = usuario.id_usu;
 
     setCargando(true);
     axios
-      .get(`https://servidor-class-access.vercel.app/api/profesor/${id_usu}`)
+      .get(`https://classaccess-backend.vercel.app/api/teachers/${id_usu}`, { withCredentials: true })
       .then((res) => {
-        if (res.data) {
-          setProfesor(res.data);
+        if (res.data && res.data.success && res.data.data) {
+          setProfesor(res.data.data); // ✅ usamos data
         } else {
           console.warn("Profesor no encontrado");
           setProfesor(null);
@@ -59,7 +77,7 @@ const Codigo_QR = () => {
               <p className="numero-empleado">No. Empleado: {profesor.no_empleado}</p>
               <div className="codigo-qr-container">
                 <QRCodeSVG
-                  value={String(profesor.no_empleado)}
+                  value={String(profesor.no_empleado)} // o JSON.stringify({...}) si quieres más datos
                   size={256}
                   className="codigo-qr"
                   includeMargin={true}

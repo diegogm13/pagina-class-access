@@ -194,3 +194,80 @@
         right: 20px;
     }
 }
+
+/* --- Estilos existentes (no se modifican) --- */
+/* ... todo tu CSS actual se mantiene igual ... */
+
+/* --- MODAL DE NOTIFICACIÓN --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right:0;
+    bottom:0;
+    background: rgba(0,0,0,0.5); /* Fondo semitransparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content h3 {
+    color: #244d7c; /* Azul Principal UTEQ */
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: #232e56; /* Azul Oscuro UTEQ para el mensaje */
+    font-size: 1rem;
+    line-height: 1.4rem;
+}
+
+.btn-cerrar-modal {
+    margin-top: 1.5rem;
+    align-self: flex-end;
+    padding: 8px 16px;
+    background-color: #244d7c; /* Azul Principal */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-cerrar-modal:hover {
+    background-color: #232e56; /* Azul Oscuro en hover */
+}
+
+/* --- Responsive para modal --- */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 1.5rem;
+        max-width: 90%;
+    }
+
+    .modal-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .modal-content p {
+        font-size: 0.95rem;
+    }
+
+    .btn-cerrar-modal {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}

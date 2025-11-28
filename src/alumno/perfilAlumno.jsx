@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import "../styles/perfilAlumno.css";
 import MenuAlumno from "./menuAlumno";
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  return null;
+};
+
 const PerfilAlumno = () => {
   const [usuario, setUsuario] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -12,9 +22,17 @@ const PerfilAlumno = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
-    if (usuarioGuardado) {
-      fetchAlumnoData(usuarioGuardado.id_usu);
+    // 🍪 Obtener datos del usuario desde la cookie
+    const userDataCookie = getCookie("userData");
+
+    if (userDataCookie) {
+      try {
+        const usuarioCookie = JSON.parse(userDataCookie);
+        fetchAlumnoData(usuarioCookie.id_usu);
+      } catch (error) {
+        console.error("Error al parsear userData:", error);
+        navigate("/");
+      }
     } else {
       navigate("/");
     }
@@ -22,20 +40,46 @@ const PerfilAlumno = () => {
 
   const fetchAlumnoData = async (id) => {
     try {
-      const response = await fetch(`https://servidor-class-access.vercel.app/alumno/${id}`);
+      // 🍪 CRÍTICO: Agregar credentials: 'include' para enviar cookies
+      const response = await fetch(`https://classaccess-backend.vercel.app/api/students/${id}`, {
+        method: 'GET',
+        credentials: 'include', // 🍪 Enviar cookies con la petición
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error del servidor:", errorData.message);
+        
+        if (response.status === 401) {
+          // Token inválido o expirado, redirigir al login
+          navigate("/");
+          return;
+        }
+        
+        throw new Error(errorData.message || 'Error al obtener datos');
+      }
+
       const data = await response.json();
-      setUsuario(data);
+      
+      // Verificar estructura de la respuesta
+      const alumnoData = data.data || data;
+      
+      setUsuario(alumnoData);
       setFormData({
-        nombre: data.nombre_usu,
-        ap: data.ap_usu,
-        am: data.am_usu,
-        correo: data.correo_usu,
-        matricula: data.matricula,
-        cod_rfid: data.cod_rfid || "",
-        grupo: data.grupo || ""
+        nombre_usu: alumnoData.nombre_usu,
+        ap_usu: alumnoData.ap_usu,
+        am_usu: alumnoData.am_usu,
+        correo_usu: alumnoData.correo_usu,
+        matricula: alumnoData.matricula,
+        cod_rfid: alumnoData.cod_rfid || "",
+        grupo: alumnoData.grupo || ""
       });
     } catch (error) {
       console.error("Error al obtener datos del alumno:", error);
+      setMessage("Error al cargar los datos del perfil");
     }
   };
 
@@ -53,13 +97,28 @@ const PerfilAlumno = () => {
     setMessage("");
 
     try {
-      const response = await fetch(`https://servidor-class-access.vercel.app/alumno/${usuario.id_usu}`, {
+      // 🍪 CRÍTICO: Agregar credentials: 'include'
+      const response = await fetch(`https://classaccess-backend.vercel.app/api/students/${usuario.id_usu}`, {
         method: "PUT",
+        credentials: 'include', // 🍪 Enviar cookies con la petición
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        if (response.status === 401) {
+          setMessage("Sesión expirada. Por favor, inicia sesión nuevamente.");
+          setTimeout(() => navigate("/"), 2000);
+          return;
+        }
+        
+        setMessage(errorData.message || "Error al actualizar el perfil");
+        return;
+      }
 
       const data = await response.json();
 
@@ -68,7 +127,7 @@ const PerfilAlumno = () => {
         fetchAlumnoData(usuario.id_usu); // Refrescar datos
         setEditMode(false);
       } else {
-        setMessage("Error al actualizar el perfil");
+        setMessage(data.message || "Error al actualizar el perfil");
       }
     } catch (error) {
       console.error("Error al actualizar:", error);
@@ -82,13 +141,16 @@ const PerfilAlumno = () => {
 
   return (
     <div className="alumno-container">
-      {/* Sidebar */}
       <MenuAlumno />
       
       <main className="contenido-alumno">
         <h1 className="titulo-perfil">Perfil del Alumno</h1>
         
-        {message && <div className={`message ${message.includes("correctamente") ? "success" : "error"}`}>{message}</div>}
+        {message && (
+          <div className={`message ${message.includes("correctamente") ? "success" : "error"}`}>
+            {message}
+          </div>
+        )}
 
         {!editMode ? (
           <div className="card-perfil">
@@ -105,7 +167,9 @@ const PerfilAlumno = () => {
             <div className="perfil-info">
               <div className="info-item">
                 <span className="info-label">Nombre:</span>
-                <span className="info-value">{usuario.nombre_usu} {usuario.ap_usu} {usuario.am_usu}</span>
+                <span className="info-value">
+                  {usuario.nombre_usu} {usuario.ap_usu} {usuario.am_usu}
+                </span>
               </div>
               
               <div className="info-item">
@@ -131,7 +195,7 @@ const PerfilAlumno = () => {
               <div className="info-item">
                 <span className="info-label">Código RFID:</span>
                 <span className="info-value">
-                  {usuario.cod_rfid ? usuario.cod_rfid : "No registrado"}
+                  {usuario.cod_rfid || "No registrado"}
                 </span>
               </div>
             </div>
@@ -153,8 +217,8 @@ const PerfilAlumno = () => {
                 <label>Nombre:</label>
                 <input
                   type="text"
-                  name="nombre"
-                  value={formData.nombre}
+                  name="nombre_usu"
+                  value={formData.nombre_usu}
                   onChange={handleInputChange}
                   required
                 />
@@ -164,8 +228,8 @@ const PerfilAlumno = () => {
                 <label>Apellido Paterno:</label>
                 <input
                   type="text"
-                  name="ap"
-                  value={formData.ap}
+                  name="ap_usu"
+                  value={formData.ap_usu}
                   onChange={handleInputChange}
                   required
                 />
@@ -175,8 +239,8 @@ const PerfilAlumno = () => {
                 <label>Apellido Materno:</label>
                 <input
                   type="text"
-                  name="am"
-                  value={formData.am}
+                  name="am_usu"
+                  value={formData.am_usu}
                   onChange={handleInputChange}
                   required
                 />
@@ -186,8 +250,8 @@ const PerfilAlumno = () => {
                 <label>Correo Electrónico:</label>
                 <input
                   type="email"
-                  name="correo"
-                  value={formData.correo}
+                  name="correo_usu"
+                  value={formData.correo_usu}
                   onChange={handleInputChange}
                   required
                 />

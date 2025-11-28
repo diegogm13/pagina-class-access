@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import MenuAdmin from "./menuAdmi";
-import "../styles/aulas.css"
+import "../styles/aulas.css";
 import { useNavigate } from "react-router-dom";
+
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return decodeURIComponent(parts.pop().split(";").shift());
+  return null;
+};
 
 const Aulas = () => {
   const navigate = useNavigate();
-  useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    if(!usuario) {
-      navigate("/");
-    }
-  }, [navigate]);
-  
+  const [usuarioLogueado, setUsuarioLogueado] = useState(null);
+
   const [aulas, setAulas] = useState([]);
   const [dispositivos, setDispositivos] = useState([]);
   const [nombreAula, setNombreAula] = useState("");
@@ -21,25 +23,64 @@ const Aulas = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 5;
 
-  const obtenerDispositivos = () => {
-    fetch("https://servidor-class-access.vercel.app/api/dispositivos")
-      .then(res => res.json())
-      .then(data => {
-        const activos = data.filter(d => d.estatus_dis === 1);
-        setDispositivos(activos);
+  // Validar usuario desde cookie
+  useEffect(() => {
+    const userDataCookie = getCookie("userData");
+    if (userDataCookie) {
+      try {
+        setUsuarioLogueado(JSON.parse(userDataCookie));
+      } catch {
+        navigate("/");
+      }
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  // OBTENER DISPOSITIVOS (usando cookies)
+  const obtenerDispositivos = async () => {
+    try {
+      const res = await fetch("https://classaccess-backend.vercel.app/api/devices", {
+        credentials: "include"
       });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Solo activos
+        const activos = data.data.filter(d => d.estatus_dis === true);
+        setDispositivos(activos);
+      } else {
+        setDispositivos([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setDispositivos([]);
+    }
   };
 
-  const obtenerAulas = () => {
-    fetch("https://servidor-class-access.vercel.app/api/aulas")
-      .then(res => res.json())
-      .then(data => setAulas(data));
+  // OBTENER AULAS (usando cookies)
+  const obtenerAulas = async () => {
+    try {
+      const res = await fetch("https://classaccess-backend.vercel.app/api/classrooms", {
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAulas(data.data);
+      } else {
+        setAulas([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setAulas([]);
+    }
   };
 
   useEffect(() => {
-    obtenerDispositivos();
-    obtenerAulas();
-  }, []);
+    if (usuarioLogueado) {
+      obtenerDispositivos();
+      obtenerAulas();
+    }
+  }, [usuarioLogueado]);
 
   const limpiarFormulario = () => {
     setNombreAula("");
@@ -56,7 +97,7 @@ const Aulas = () => {
     return !dispositivoEnUso;
   };
 
-  const guardarAula = (e) => {
+  const guardarAula = async (e) => {
     e.preventDefault();
 
     if (!nombreAula.trim() || !edificio.trim()) {
@@ -74,26 +115,35 @@ const Aulas = () => {
     };
 
     const url = editandoId
-      ? `https://servidor-class-access.vercel.app/api/aulas/${editandoId}`
-      : "https://servidor-class-access.vercel.app/api/aulas";
+      ? `https://classaccess-backend.vercel.app/api/classrooms/${editandoId}`
+      : "https://classaccess-backend.vercel.app/api/classrooms";
 
     const metodo = editandoId ? "PUT" : "POST";
 
-    fetch(url, {
-      method: metodo,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos)
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          limpiarFormulario();
-          obtenerAulas();
-          setPaginaActual(1); // Volver a página 1
-        } else {
-          alert("Error al guardar aula");
-        }
+    try {
+      const res = await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(datos)
       });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        limpiarFormulario();
+        obtenerAulas();
+        setPaginaActual(1);
+      } else if (data.errors) {
+        const mensajes = data.errors.map(err => err.msg).join("\n");
+        alert(mensajes);
+      } else {
+        alert(data.message || "Error al guardar aula");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error de conexión");
+    }
   };
 
   const editarAula = (aula) => {
@@ -103,28 +153,17 @@ const Aulas = () => {
     setEditandoId(aula.id_aula);
   };
 
-  // Calcular índices para la paginación
+  // Paginación
   const indiceUltimo = paginaActual * registrosPorPagina;
   const indicePrimero = indiceUltimo - registrosPorPagina;
   const aulasActuales = aulas.slice(indicePrimero, indiceUltimo);
   const totalPaginas = Math.ceil(aulas.length / registrosPorPagina);
 
-  const paginaSiguiente = () => {
-    if (paginaActual < totalPaginas) {
-      setPaginaActual(paginaActual + 1);
-    }
-  };
-
-  const paginaAnterior = () => {
-    if (paginaActual > 1) {
-      setPaginaActual(paginaActual - 1);
-    }
-  };
+  if (!usuarioLogueado) return <div className="loading">Validando sesión...</div>;
 
   return (
     <div className="dashboard-administrador">
       <MenuAdmin />
-    
       <main className="contenido-administrador aulas-container">
         <div className="aulas-header">
           <h1>Gestión de Aulas</h1>
@@ -180,11 +219,14 @@ const Aulas = () => {
             {editandoId && (
               <button 
                 type="button" 
-                className="btn-cancelar"
+                className="btn-guardar"
                 onClick={limpiarFormulario}
+                style={{ color: "#ffffff" }}
               >
                 Cancelar
               </button>
+
+
             )}
           </div>
         </form>
@@ -195,77 +237,65 @@ const Aulas = () => {
           </div>
         )}
 
-        <div className="table-responsive" style={{ overflow: 'visible' }}>
+        <div className="table-responsive">
           {aulas.length > 0 ? (
-            <>
-              <table className="aulas-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                <thead>
-                  <tr>
-                    <th style={{ width: '10%' }}>ID</th>
-                    <th style={{ width: '25%' }}>Nombre</th>
-                    <th style={{ width: '25%' }}>Edificio</th>
-                    <th style={{ width: '25%' }}>Dispositivo</th>
-                    <th style={{ width: '15%' }}>Acciones</th>
+            <table className="aulas-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Edificio</th>
+                  <th>Dispositivo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aulasActuales.map(a => (
+                  <tr key={a.id_aula}>
+                    <td data-label="ID">{a.id_aula}</td>
+                    <td data-label="Nombre">{a.nombre_aula}</td>
+                    <td data-label="Edificio">{a.edificio}</td>
+                    <td data-label="Dispositivo">
+                      {a.id_dispositivo ? (
+                        <span className="dispositivo-asignado">
+                          {dispositivos.find(d => d.id_dispositivo === a.id_dispositivo)?.nombre_dis}
+                        </span>
+                      ) : (
+                        <span className="sin-dispositivo">Sin dispositivo</span>
+                      )}
+                    </td>
+                    <td data-label="Acciones">
+                      <button 
+                        onClick={() => editarAula(a)}
+                        className="btn-editar"
+                      >
+                        Editar
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {aulasActuales.map(a => (
-                    <tr key={a.id_aula}>
-                      <td data-label="ID">{a.id_aula}</td>
-                      <td data-label="Nombre">{a.nombre_aula}</td>
-                      <td data-label="Edificio">{a.edificio}</td>
-                      <td data-label="Dispositivo">
-                        {a.id_dispositivo ? (
-                          <span className="dispositivo-asignado">
-                            {dispositivos.find(d => d.id_dispositivo === a.id_dispositivo)?.nombre_dis}
-                          </span>
-                        ) : (
-                          <span className="sin-dispositivo">Sin dispositivo</span>
-                        )}
-                      </td>
-                      <td data-label="Acciones">
-                        <button 
-                          onClick={() => editarAula(a)}
-                          className="btn-editar"
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {totalPaginas > 1 && (
-                <div className="paginacion">
-                  <button 
-                    className="btn-paginacion"
-                    onClick={paginaAnterior}
-                    disabled={paginaActual === 1}
-                  >
-                    Anterior
-                  </button>
-
-                  <span className="pagina-actual">
-                    Página {paginaActual} de {totalPaginas}
-                  </span>
-
-                  <button 
-                    className="btn-paginacion"
-                    onClick={paginaSiguiente}
-                    disabled={paginaActual === totalPaginas}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              )}
-            </>
+                ))}
+              </tbody>
+            </table>
           ) : (
             <div className="no-results">
               <p>No hay aulas registradas</p>
             </div>
           )}
         </div>
+
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-paginacion" onClick={() => setPaginaActual(p => Math.max(1, p - 1))} disabled={paginaActual === 1}>
+              Anterior
+            </button>
+            <span className="pagina-actual">
+              Página {paginaActual} de {totalPaginas}
+            </span>
+            <button className="btn-paginacion" onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))} disabled={paginaActual === totalPaginas}>
+              Siguiente
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

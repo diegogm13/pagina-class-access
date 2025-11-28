@@ -5,50 +5,88 @@ import { useNavigate } from "react-router-dom";
 
 const EnviarNotificaciones = () => {
   const navigate = useNavigate();
+  const [usuarioLogueado, setUsuarioLogueado] = useState(null);
 
+  // 🍪 Función para leer cookies
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return decodeURIComponent(parts.pop().split(";").shift());
+    }
+    return null;
+  };
+
+  // Validar usuario desde cookie
   useEffect(() => {
-    const usuario = localStorage.getItem("usuario");
-    if(!usuario) {
+    const userDataCookie = getCookie("userData");
+    if (userDataCookie) {
+      try {
+        const usuario = JSON.parse(userDataCookie);
+        setUsuarioLogueado(usuario);
+        
+        // Verificar que sea administrador (priv_usu = 3)
+        if (usuario.priv_usu !== 3) {
+          alert("No tienes permisos para enviar notificaciones");
+          navigate("/");
+        }
+      } catch (err) {
+        console.error("Error al parsear userData:", err);
+        navigate("/");
+      }
+    } else {
       navigate("/");
     }
   }, [navigate]);
-  
+
   const [mensaje, setMensaje] = useState("");
-  const [destino, setDestino] = useState("1_2");
+  const [destino, setDestino] = useState("3");
   const [enviado, setEnviado] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const response = await fetch("https://servidor-class-access.vercel.app/enviarNotificacion", {
+      console.log("📤 Enviando notificación...");
+      console.log("Mensaje:", mensaje);
+      console.log("Target:", parseInt(destino));
+
+      const response = await fetch("https://classaccess-backend.vercel.app/api/notifications/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
+        credentials: "include", // ✅ Envía las cookies automáticamente
         body: JSON.stringify({
-          mensaje,
-          tipo_destino: destino === "1_2" ? "todos" : parseInt(destino)
+          message: mensaje,
+          target: parseInt(destino)
         })
       });
-      
+
+      console.log("📥 Respuesta del servidor:", response.status);
+
       const data = await response.json();
-      
-      if (data.success) {
+      console.log("✅ Datos recibidos:", data);
+
+      if (response.ok) {
         setEnviado(true);
         setMensaje("");
-        setDestino("1_2");
+        setDestino("3");
         setTimeout(() => setEnviado(false), 3000);
       } else {
-        alert(data.msg || "Error al enviar notificación");
+        alert(data.message || "Error al enviar notificación");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Error:", error);
       alert("Error al conectar con el servidor");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!usuarioLogueado) return <div className="loading">Validando sesión...</div>;
 
   return (
     <div className="dashboard-administrador">
@@ -69,6 +107,8 @@ const EnviarNotificaciones = () => {
               value={mensaje}
               onChange={(e) => setMensaje(e.target.value)}
               required
+              minLength={5}
+              maxLength={500}
             />
           </div>
 
@@ -82,7 +122,7 @@ const EnviarNotificaciones = () => {
             >
               <option value="1">Solo Alumnos</option>
               <option value="2">Solo Maestros</option>
-              <option value="1_2">Todos los usuarios</option>
+              <option value="3">Todos los usuarios</option>
             </select>
           </div>
 
@@ -90,7 +130,7 @@ const EnviarNotificaciones = () => {
             <button 
               type="submit" 
               className="btn-enviar"
-              disabled={isLoading}
+              disabled={isLoading || !mensaje.trim()}
             >
               {isLoading ? (
                 <>
@@ -109,7 +149,7 @@ const EnviarNotificaciones = () => {
 
         {enviado && (
           <div className="notification-success">
-            ¡Notificación enviada correctamente!
+            ✅ ¡Notificación enviada correctamente!
           </div>
         )}
       </main>

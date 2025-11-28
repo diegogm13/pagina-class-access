@@ -4,17 +4,35 @@ import MenuMaestro from "./menuMaestro";
 import '../styles/maestro.css';
 import headerImg from '../maestros.jpg'; // Importamos la imagen directamente
 
+// 🍪 Utilidad para obtener cookies
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  return null;
+};
+
 const Maestro = () => {
   const [nombre, setNombre] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem("usuario"));
+    // 🍪 Obtener datos del usuario desde la cookie
+    const userDataCookie = getCookie("userData");
 
-    if (usuarioGuardado) {
-      setNombre(usuarioGuardado.nombre_usu);
+    if (userDataCookie) {
+      try {
+        const usuario = JSON.parse(userDataCookie);
+        setNombre(usuario.nombre_usu);
+      } catch (error) {
+        console.error("Error al parsear userData:", error);
+        navigate("/"); // Redirige al login si la cookie está corrupta
+      }
     } else {
-      navigate("/"); // Redirige al login si no hay usuario
+      // Si no hay cookie, redirigir al login
+      navigate("/");
     }
   }, [navigate]);
 

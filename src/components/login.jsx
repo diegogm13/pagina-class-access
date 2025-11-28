@@ -16,6 +16,16 @@ const EyeOffIcon = () => (
     </svg>
 );
 
+// 🍪 Utilidad para obtener una cookie por su nombre
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return decodeURIComponent(parts.pop().split(';').shift());
+    }
+    return null;
+};
+
 const Login = () => {
     const [correo, setCorreo] = useState("");
     const [contrasena, setContrasena] = useState("");
@@ -28,20 +38,19 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validaciones antes de enviar
         if (!correo.trim() || !contrasena.trim()) {
             setMensaje("Por favor completa todos los campos");
             return;
         }
 
         try {
-            const response = await fetch("https://servidor-class-access.vercel.app/login", {
+            const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'include', // 🍪 IMPORTANTE: Incluir cookies en cada request
                 body: JSON.stringify({ correo, password: contrasena }),
             });
 
-            // Esto detecta si el servidor está caído (no hay conexión)
             if (!response.ok) {
                 if (response.status >= 500) {
                     setMensaje("Error del servidor o base de datos no disponible");
@@ -52,19 +61,37 @@ const Login = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                // Credenciales incorrectas o usuario no registrado
-                setMensaje(data.message || "Credenciale incorrectas");
+                setMensaje(data.message || "Credenciales incorrectas");
                 return;
             }
 
-            // Login correcto
             setMensaje("Login exitoso");
 
-            const tipoUsuario = data.user.priv_usu;
-            
-            localStorage.setItem("usuario", JSON.stringify(data.user));
-            localStorage.setItem("id_usu", data.user.id_usu);
+            // 🍪 Esperar un momento para que las cookies se establezcan
+            await new Promise(resolve => setTimeout(resolve, 100));
 
+            // Leer userData de la cookie
+            const userDataCookie = getCookie("userData");
+            
+            console.log("Todas las cookies:", document.cookie);
+            console.log("userData cookie:", userDataCookie);
+
+            // Si no hay cookie, usar los datos de la respuesta del servidor
+            let userData;
+            if (userDataCookie) {
+                userData = JSON.parse(userDataCookie);
+            } else if (data.data && data.data.user) {
+                // Fallback: usar datos de la respuesta
+                console.warn("Cookie no encontrada, usando respuesta del servidor");
+                userData = data.data.user;
+            } else {
+                setMensaje("Error al obtener datos de usuario");
+                return;
+            }
+
+            const tipoUsuario = userData.priv_usu;
+
+            // 🎯 Redirigir según el tipo de usuario
             switch (tipoUsuario) {
                 case 1: navigate("/alumno"); break;
                 case 2: navigate("/maestro"); break;
@@ -83,56 +110,54 @@ const Login = () => {
         return mensaje.includes("exitoso") ? "success" : "error";
     };
 
-  return (
-    <div className="login-page">
-        <div className="left-panel">
-            <img src="/logo.png" alt="Logo" className="logo-image" />
-        </div>
-        <div className="right-panel">
-            <div className="form-container">
-                <h2>Inicio de Sesión</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="correo">Correo Electrónico</label>
-                        <input
-                            id="correo"
-                            type="email"
-                            value={correo}
-                            onChange={(e) => setCorreo(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="contrasena">Contraseña</label>
-                        <div className="password-container">
+    return (
+        <div className="login-page">
+            <div className="left-panel">
+                <img src="/logo.png" alt="Logo" className="logo-image" />
+            </div>
+            <div className="right-panel">
+                <div className="form-container">
+                    <h2>Inicio de Sesión</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="correo">Correo Electrónico</label>
                             <input
-                                id="contrasena"
-                                type={mostrarContrasena ? "text" : "password"}
-                                value={contrasena}
-                                onChange={(e) => setContrasena(e.target.value)}
-                                maxLength={20}
+                                id="correo"
+                                type="email"
+                                value={correo}
+                                onChange={(e) => setCorreo(e.target.value)}
                                 required
                             />
-                            <span
-                                className="toggle-password-icon"
-                                onClick={() => setMostrarContrasena(!mostrarContrasena)}
-                            >
-                                {mostrarContrasena ? <EyeOffIcon /> : <EyeIcon />}
-                            </span>
                         </div>
-                    </div>
 
-                    <button type="submit" className="login-button">Iniciar Sesión</button>
-                    <button type="button" onClick={irRegistro} className="boton-registro">Registro</button>
-                </form>
+                        <div className="form-group">
+                            <label htmlFor="contrasena">Contraseña</label>
+                            <div className="password-container">
+                                <input
+                                    id="contrasena"
+                                    type={mostrarContrasena ? "text" : "password"}
+                                    value={contrasena}
+                                    onChange={(e) => setContrasena(e.target.value)}
+                                    maxLength={20}
+                                    required
+                                />
+                                <span
+                                    className="toggle-password-icon"
+                                    onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                                >
+                                    {mostrarContrasena ? <EyeOffIcon /> : <EyeIcon />}
+                                </span>
+                            </div>
+                        </div>
 
-                {/* Mensaje FUERA del form */}
-                {mensaje && <p className={`mensaje ${getMensajeClass()}`}>{mensaje}</p>}
+                        <button type="submit" className="login-button">Iniciar Sesión</button>
+                        <button type="button" onClick={irRegistro} className="boton-registro">Registro</button>
+                    </form>
+
+                    {mensaje && <p className={`mensaje ${getMensajeClass()}`}>{mensaje}</p>}
+                </div>
             </div>
         </div>
-    </div>
-
     );
 };
 
