@@ -43,7 +43,7 @@ const HistorialMaestros = () => {
 
     setCargando(true);
     axios
-      .get(`https://classaccess-backend.vercel.app/api/students/${id_usu}/history`, {
+      .get(`/api/students/${id_usu}/history`, {
         withCredentials: true,
       })
       .then((res) => {

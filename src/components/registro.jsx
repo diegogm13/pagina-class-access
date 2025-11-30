@@ -91,7 +91,7 @@ const RegistroAlumno = () => {
     console.log("📤 Enviando payload:", payload); // Debug
 
     try {
-      const res = await fetch("https://classaccess-backend.vercel.app/api/users/register", {
+      const res = await fetch("/api/users/register", {
         method: "POST",
         credentials: 'include', // 🍪 Por si necesitas cookies en el futuro
         headers: { 

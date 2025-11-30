@@ -55,7 +55,7 @@ const HistorialAlumno = () => {
       try {
         // 🍪 CRÍTICO: Agregar withCredentials para enviar cookies
         const response = await axios.get(
-          `https://classaccess-backend.vercel.app/api/students/${idUsuario}/history`,
+          `/api/students/${idUsuario}/history`,
           {
             withCredentials: true, // 🍪 Equivalente a credentials: 'include' en fetch
             headers: {

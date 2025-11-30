@@ -57,7 +57,7 @@ const Asistencias = () => {
       setLoading(true);
 
       // 1️⃣ Obtener todos los usuarios
-      const responseUsuarios = await fetch("https://classaccess-backend.vercel.app/api/users", {
+      const responseUsuarios = await fetch("/api/users", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -76,7 +76,7 @@ const Asistencias = () => {
       const resultados = await processInBatches(todosLosUsuarios, 10, async (user) => {
         try {
           const responseHistory = await fetch(
-            `https://classaccess-backend.vercel.app/api/students/${user.id_usu}/history`,
+            `/api/students/${user.id_usu}/history`,
             {
               method: "GET",
               headers: { "Content-Type": "application/json" },

@@ -40,7 +40,7 @@ const Dispositivos = () => {
   const obtenerDispositivos = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://classaccess-backend.vercel.app/api/devices", {
+      const response = await fetch("/api/devices", {
         credentials: "include",
       });
 
@@ -71,7 +71,7 @@ const Dispositivos = () => {
     if (!nuevoNombre.trim()) return alert("El nombre es obligatorio");
 
     try {
-      const response = await fetch("https://classaccess-backend.vercel.app/api/devices", {
+      const response = await fetch("/api/devices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -110,7 +110,7 @@ const cambiarEstatus = async (id, estatusActual) => {
   if (!window.confirm(`¿Deseas ${nuevoEstatus ? "activar" : "desactivar"} este dispositivo?`)) return;
 
   try {
-    const response = await fetch(`https://classaccess-backend.vercel.app/api/devices/${id}/status`, {
+    const response = await fetch(`/api/devices/${id}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

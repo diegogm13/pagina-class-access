@@ -53,7 +53,7 @@ const EnviarNotificaciones = () => {
       console.log("Mensaje:", mensaje);
       console.log("Target:", parseInt(destino));
 
-      const response = await fetch("https://classaccess-backend.vercel.app/api/notifications/send", {
+      const response = await fetch("/api/notifications/send", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json"

@@ -40,7 +40,7 @@ const Aulas = () => {
   // OBTENER DISPOSITIVOS (usando cookies)
   const obtenerDispositivos = async () => {
     try {
-      const res = await fetch("https://classaccess-backend.vercel.app/api/devices", {
+      const res = await fetch("/api/devices", {
         credentials: "include"
       });
       const data = await res.json();
@@ -60,7 +60,7 @@ const Aulas = () => {
   // OBTENER AULAS (usando cookies)
   const obtenerAulas = async () => {
     try {
-      const res = await fetch("https://classaccess-backend.vercel.app/api/classrooms", {
+      const res = await fetch("/api/classrooms", {
         credentials: "include"
       });
       const data = await res.json();
@@ -115,8 +115,8 @@ const Aulas = () => {
     };
 
     const url = editandoId
-      ? `https://classaccess-backend.vercel.app/api/classrooms/${editandoId}`
-      : "https://classaccess-backend.vercel.app/api/classrooms";
+      ? `/api/classrooms/${editandoId}`
+      : "/api/classrooms";
 
     const metodo = editandoId ? "PUT" : "POST";
 
