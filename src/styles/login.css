@@ -245,14 +245,23 @@ button:active {
 /* Botón de registro */
 .boton-registro {
   margin-top: 12px;
-  background: white;
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+  background: transparent;        /* 🔥 Completamente transparente */
+  box-shadow: none;               /* Sin sombra */
+  border: none;                   /* Sin borde */
+  color: #ffffff;                 /* Ajusta color según tu diseño */
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;     /* Para que parezca un enlace */
+  transition: 0.3s ease;
 }
 
+/* Hover */
 .boton-registro:hover {
-  background: white;
-  box-shadow: 0 6px 20px rgba(100, 116, 139, 0.3);
+  color: #ffffff;                 /* Color más claro al pasar el mouse */
+  text-decoration: none;          /* Opcional, para un efecto diferente */
+  transform: scale(1.03);         /* Ligero zoom */
 }
+
 
 /* Responsive para tablets */
 @media (max-width: 992px) {
@@ -349,4 +358,58 @@ button:active {
   padding: 4px 10px;
   font-size: 12px;
   }
+  /* Panel derecho: Formulario de login */
+.right-panel {
+  flex: 1;
+  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  position: relative;
+}
+
+/* Botón de regresar */
+.back-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  /* ⚠️ Correcciones importantes */
+  width: auto;                /* Evita que herede width:100% del global */
+  padding: 10px 20px;         /* Ajuste normal */
+  background: white;          /* No el degradado del global */
+  color: #232e56;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(35, 46, 86, 0.1);
+}
+
+.back-button:hover {
+  background: #232e56;
+  color: white;
+  border-color: #232e56;
+  transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(35, 46, 86, 0.2);
+}
+
+.back-button svg {
+  width: 18px;
+  height: 18px;
+}
+.right-panel .back-button {
+  width: auto;
+}
+
+
+
+
+  
 }

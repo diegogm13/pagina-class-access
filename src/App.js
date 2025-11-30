@@ -3,6 +3,8 @@ import Login from "./components/login";
 import RegistroAlumno from "./components/registro";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute"; // 🔒 Importar ProtectedRoute
+import LandingPage from "./components/LandingPage"; // Agregar import
+
 
 // Admin
 import Admi from "./admi/dashboardAdmi";
@@ -39,7 +41,8 @@ function App() {
     <Router>
       <Routes>
         {/* 🌐 Rutas públicas */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/RegistroAlumno" element={<RegistroAlumno/>}/>
 
         {/* 👨‍🎓 Rutas de ALUMNO (priv_usu = 1) */}
