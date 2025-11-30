@@ -35,75 +35,71 @@ const Login = () => {
     const navigate = useNavigate();
     const irRegistro = () => navigate("/RegistroAlumno");
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!correo.trim() || !contrasena.trim()) {
-            setMensaje("Por favor completa todos los campos");
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!correo.trim() || !contrasena.trim()) {
+        setMensaje("Por favor completa todos los campos");
+        return;
+    }
+
+    try {
+        // 🔥 Ahora usa la ruta relativa que será manejada por el proxy de Vercel
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: 'include',
+            body: JSON.stringify({ correo, password: contrasena }),
+        });
+
+        if (!response.ok) {
+            if (response.status >= 500) {
+                setMensaje("Error del servidor o base de datos no disponible");
+                return;
+            }
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            setMensaje(data.message || "Credenciales incorrectas");
             return;
         }
 
-        try {
-            const response = await fetch("https://classaccess-backend.vercel.app/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include', // 🍪 IMPORTANTE: Incluir cookies en cada request
-                body: JSON.stringify({ correo, password: contrasena }),
-            });
+        setMensaje("Login exitoso");
 
-            if (!response.ok) {
-                if (response.status >= 500) {
-                    setMensaje("Error del servidor o base de datos no disponible");
-                    return;
-                }
-            }
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-            const data = await response.json();
+        const userDataCookie = getCookie("userData");
+        
+        console.log("Todas las cookies:", document.cookie);
+        console.log("userData cookie:", userDataCookie);
 
-            if (!response.ok) {
-                setMensaje(data.message || "Credenciales incorrectas");
-                return;
-            }
-
-            setMensaje("Login exitoso");
-
-            // 🍪 Esperar un momento para que las cookies se establezcan
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Leer userData de la cookie
-            const userDataCookie = getCookie("userData");
-            
-            console.log("Todas las cookies:", document.cookie);
-            console.log("userData cookie:", userDataCookie);
-
-            // Si no hay cookie, usar los datos de la respuesta del servidor
-            let userData;
-            if (userDataCookie) {
-                userData = JSON.parse(userDataCookie);
-            } else if (data.data && data.data.user) {
-                // Fallback: usar datos de la respuesta
-                console.warn("Cookie no encontrada, usando respuesta del servidor");
-                userData = data.data.user;
-            } else {
-                setMensaje("Error al obtener datos de usuario");
-                return;
-            }
-
-            const tipoUsuario = userData.priv_usu;
-
-            // 🎯 Redirigir según el tipo de usuario
-            switch (tipoUsuario) {
-                case 1: navigate("/alumno"); break;
-                case 2: navigate("/maestro"); break;
-                case 3: navigate("/admi"); break;
-                default: setMensaje("Tipo de usuario desconocido");
-            }
-
-        } catch (error) {
-            console.error("Error:", error);
-            setMensaje("No se pudo conectar al servidor. Verifica tu conexión o la base de datos.");
+        let userData;
+        if (userDataCookie) {
+            userData = JSON.parse(userDataCookie);
+        } else if (data.data && data.data.user) {
+            console.warn("Cookie no encontrada, usando respuesta del servidor");
+            userData = data.data.user;
+        } else {
+            setMensaje("Error al obtener datos de usuario");
+            return;
         }
-    };
+
+        const tipoUsuario = userData.priv_usu;
+
+        switch (tipoUsuario) {
+            case 1: navigate("/alumno"); break;
+            case 2: navigate("/maestro"); break;
+            case 3: navigate("/admi"); break;
+            default: setMensaje("Tipo de usuario desconocido");
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        setMensaje("No se pudo conectar al servidor. Verifica tu conexión o la base de datos.");
+    }
+};
 
     const getMensajeClass = () => {
         if (!mensaje) return "";
